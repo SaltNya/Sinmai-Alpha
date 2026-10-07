@@ -1,0 +1,4 @@
+Sinmai-Alpha derives chart runtime and difficulty appearance code from AquaMai (Apache-2.0).
+Modified and extracted as an independent MelonLoader mod in October 2026.
+Reference chart syntax and rendering adaptations retain upstream notices in the source files.
+Game and Unity assemblies in Libs are local build references and are not distributed.

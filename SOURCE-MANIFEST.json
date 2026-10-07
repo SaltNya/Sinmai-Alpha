@@ -1,0 +1,607 @@
+[
+  {
+    "path": "Notes/ActivationLeadCache.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ActivationLeadCache.cs",
+    "sha256": "09DBF87F8FA241C7A1758E470263A40E8411A55B3129EB3F665C5E6C55DF7752"
+  },
+  {
+    "path": "Notes/BorrowedNotes.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\BorrowedNotes.cs",
+    "sha256": "FB58F2F037976587D263285ADBBB6C89E8981AF0E0C0DCDA6FC6DC210A47AD07"
+  },
+  {
+    "path": "Notes/BounceHoldVisuals.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\BounceHoldVisuals.cs",
+    "sha256": "56AA7783CA2D919238DFD17BE3E07C2D2BB2FCBE5722A96136EDD08A42F6BE4D"
+  },
+  {
+    "path": "Notes/ChartComboDisplay.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartComboDisplay.cs",
+    "sha256": "929821C819F84CE15EE2B95F228ABF639B28398D2A422AE215F5D4A59C3000C8"
+  },
+  {
+    "path": "Notes/ChartEndingDiagnostics.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartEndingDiagnostics.cs",
+    "sha256": "19DB79BB651E4DC979107E9B57E1E4E6330A3421D4660A0F19575A681A9267B2"
+  },
+  {
+    "path": "Notes/ChartFrameIsolation.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartFrameIsolation.cs",
+    "sha256": "F6963A1A0AF5F649F68D68D6425DC1FBF4C693F670B8BBC140B128FB6823D1BF"
+  },
+  {
+    "path": "Notes/ChartFrameMotion.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartFrameMotion.cs",
+    "sha256": "B164E72CBFDE74534FE56AC922DA51259D7A81EA2079E4FF8215CC2B22BD335C"
+  },
+  {
+    "path": "Notes/ChartJudgeLine.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartJudgeLine.cs",
+    "sha256": "1D3D4578D7F79EF342BC400FC4C3B74BBD4716DCDAC74463221E680FFE9D9516"
+  },
+  {
+    "path": "Notes/ChartJudgeLineExpansion.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartJudgeLineExpansion.cs",
+    "sha256": "85C0FE1948DA098B63EF605DC4A94071026A8518E3B9214D6B177405D8240BEC"
+  },
+  {
+    "path": "Notes/ChartJudgeText.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\ChartJudgeText.cs",
+    "sha256": "BD8322514FB847198D966138A54C2A03B8969B9425AC81FD3216652C19249278"
+  },
+  {
+    "path": "Notes/ChartLoadDiagnostics.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\ChartLoadDiagnostics.cs",
+    "sha256": "E5D02F12EB546CE56EEDAA51BD68FC3A610F4DCBBAA0DD281D41BB84F88DB0A2"
+  },
+  {
+    "path": "Notes/ChartMedia.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\ChartMedia.cs",
+    "sha256": "015A0D61528B6AA4AC3C9C2A3F63CD1428EB80DD06C89F40A69EF3CCF2F23DAF"
+  },
+  {
+    "path": "Notes/ChartNoiseDisplay.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartNoiseDisplay.cs",
+    "sha256": "BF15D6A77662878DE0A1D59676E1208661C4A5290F9E9981E5CF5ABAF1FC13BE"
+  },
+  {
+    "path": "Notes/ChartNoiseRendering.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartNoiseRendering.cs",
+    "sha256": "4FA9C3492B5D503DF21B74D4E715AABAD890F22D755158BF53D004E44FD8935B"
+  },
+  {
+    "path": "Notes/ChartNoiseZones.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartNoiseZones.cs",
+    "sha256": "8ACF8B8FE4C4BA3B8AACC260C42CA818AF8A4D1B84D3C498E2078D6DE54251FE"
+  },
+  {
+    "path": "Notes/ChartPresentation.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartPresentation.cs",
+    "sha256": "A5550E83BAC9E30F3DDB539E2A96C794A871323DD68573C44F05332211931444"
+  },
+  {
+    "path": "Notes/ChartRuntimeContext.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\ChartRuntimeContext.cs",
+    "sha256": "08A16ADFA561450A98A8DE7E5CEDD4BFF8C70C66295ED654841D6CB8B277307A"
+  },
+  {
+    "path": "Notes/ChartRuntimeState.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartRuntimeState.cs",
+    "sha256": "E4C6E831159B2B4871EEFCD4C38CC6C2AF276457F8A1F72A760E963905F3AADC"
+  },
+  {
+    "path": "Notes/ChartScreenEffects.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartScreenEffects.cs",
+    "sha256": "596DA3E287ED2EE03247FEFFF8B299338D7A235D5CB29EB9E9972D41EBE6FB5A"
+  },
+  {
+    "path": "Notes/ChartSubtitles.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ChartSubtitles.cs",
+    "sha256": "8AEB80033C30DE2B2A753F52FAFF0FDEE42F8550C344AB33311BE2DBAF7119A9"
+  },
+  {
+    "path": "Notes/CustomNoteTypes.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\CustomNoteTypes.cs",
+    "sha256": "A2E7EB8D40FF91F06E905EEB73F01E2AE10925C88F5DD843D81E4DE451CD20B9"
+  },
+  {
+    "path": "Notes/DZoneLane.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\DZoneLane.cs",
+    "sha256": "029758EEDE670248A3A42D533351B094F96E593F6B0452578631192AE3099D5F"
+  },
+  {
+    "path": "Notes/DZoneNotes.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\DZoneNotes.cs",
+    "sha256": "6C7883D64349FC187E9D72DB839739750779F382DC38090A96ABC9C4B998A0E1"
+  },
+  {
+    "path": "Notes/FakeNotes.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\FakeNotes.cs",
+    "sha256": "D4FBEF33A682B27A09A360041C44FF2586A68907DA5F043E6E82D3B43758208C"
+  },
+  {
+    "path": "Notes/FeedbackRadiusNotes.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\FeedbackRadiusNotes.cs",
+    "sha256": "2D7B161E25FDBA936C16F5E1132A79103C0367C21C57E2510B268FE5CA621643"
+  },
+  {
+    "path": "Notes/FireworkNotes.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\FireworkNotes.cs",
+    "sha256": "74051B7558F4CBCBE3D64215A713D8E7F0DC0153E3BF16767E73DC370D1F34CE"
+  },
+  {
+    "path": "Notes/MineAudio.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineAudio.cs",
+    "sha256": "8E1D40C778E1BCA2C22B0F5F48731AA48C84E15190F2022DE8F3A872AFA56920"
+  },
+  {
+    "path": "Notes/MineAudioRouting.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineAudioRouting.cs",
+    "sha256": "CF2F0F5DBB9C7A38ABE9AA1C51AE0AE6E2EAC1590C063985C91F0AAC733436FA"
+  },
+  {
+    "path": "Notes/MineBreakHoldNote.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineBreakHoldNote.cs",
+    "sha256": "358725F6D631A4FED1B4C78A412BDE0153B3DB2CA09EBF30BD336162F253EB34"
+  },
+  {
+    "path": "Notes/MineBreakNote.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineBreakNote.cs",
+    "sha256": "7289334B53812DAA68F9AA2524A5854322EAF3C36E1A78B3DE3229AFD37EDFE3"
+  },
+  {
+    "path": "Notes/MineBreakStarNote.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineBreakStarNote.cs",
+    "sha256": "2C3D212567F1959AD3C095588C1CF3A96AF696320DB4215937F363AE7321A268"
+  },
+  {
+    "path": "Notes/MineCueController.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineCueController.cs",
+    "sha256": "5A6C7974E0C10A382E49F8ADDEC41D269AF5CC85DD7080F6500747A7286DC6E0"
+  },
+  {
+    "path": "Notes/MineFeedback.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineFeedback.cs",
+    "sha256": "8515F3CCC451C9E71BDE951440B5615C2B7A9DB4E4A9E9B468403B864428BA1E"
+  },
+  {
+    "path": "Notes/MineGuideVisuals.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\MineGuideVisuals.cs",
+    "sha256": "64770D96768C1C4ED91B41DB0671A64FC66C6D998070B7E5552AB49B6252838D"
+  },
+  {
+    "path": "Notes/MineHoldNote.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineHoldNote.cs",
+    "sha256": "FE2B293E78D68B41623C5D74847931FEB5D8B93A835400B8FDA1BB149041700D"
+  },
+  {
+    "path": "Notes/MineNoteBehaviour.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineNoteBehaviour.cs",
+    "sha256": "DCC8014F0885603EF37D152543CA3F02EAF0E83AD2519228F71BD6621FFA15E8"
+  },
+  {
+    "path": "Notes/MineNoteFactory.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineNoteFactory.cs",
+    "sha256": "353C230ED3F1D431BD603821DB8BDB5E37A7D012C351E8EF4FAEAD5DB2A1A356"
+  },
+  {
+    "path": "Notes/MineSlideFan.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineSlideFan.cs",
+    "sha256": "FB07AC8E548C27DF74BB7CA54C00D03483E8CC4D1E0785D44BA08EECB6F91113"
+  },
+  {
+    "path": "Notes/MineSlideRoot.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineSlideRoot.cs",
+    "sha256": "1FAC8FCAB90E8EF14A5E804E49F3188F83F9BDA5BAFDA0DF1D1EBF743D325CFF"
+  },
+  {
+    "path": "Notes/MineStarNote.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineStarNote.cs",
+    "sha256": "D4356B0AE47567BDA17540C35FE4DCAEDC10DC9B4740407903168ADE937E2345"
+  },
+  {
+    "path": "Notes/MineTapNote.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineTapNote.cs",
+    "sha256": "DF853C458AEB9DD0F57C9296539884FC395562FF9C10DBC7BC7B239993015AE4"
+  },
+  {
+    "path": "Notes/MineTintSprites.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\MineTintSprites.cs",
+    "sha256": "ED290FD94BA9329E35556BC9B34B7647DD9F954507AD60CEF6372F01E709E79E"
+  },
+  {
+    "path": "Notes/MineTouchHoldC.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineTouchHoldC.cs",
+    "sha256": "A019C1B9274EAFD74A7484905D91454CB2A96A800255B525EB12B6D9D64D3128"
+  },
+  {
+    "path": "Notes/MineTouchNoteB.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineTouchNoteB.cs",
+    "sha256": "524EABD44273F6B04A13422C2133C88A968DB1756592638FEAB4EB0D0E450DBB"
+  },
+  {
+    "path": "Notes/MineTouchNoteC.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineTouchNoteC.cs",
+    "sha256": "99C1573DE36E2B44FCBED68A47D284B7BEE1C7E05851EB5C7EB0F03191B4C7AE"
+  },
+  {
+    "path": "Notes/MineTouchStarNoteB.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineTouchStarNoteB.cs",
+    "sha256": "4EC8D8EC5A041E842EBA426F4E71F91026CA72304F4F5920C3D3850DBEDA648A"
+  },
+  {
+    "path": "Notes/MineTouchStarNoteC.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\MineTouchStarNoteC.cs",
+    "sha256": "87C0A99D572E5451E323A4D0CAB9A8A10F9465FE9857DCF31C3ABB75FE802472"
+  },
+  {
+    "path": "Notes/NativeDFanNotes.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\NativeDFanNotes.cs",
+    "sha256": "DEB912B0345190988AE788B1AF5631704C6B75D5B105DF906B6377550810B870"
+  },
+  {
+    "path": "Notes/NoiseWarningTiming.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\NoiseWarningTiming.cs",
+    "sha256": "1EFFA7DA83BEEB74E4BF8988CF5B1B70281BF68E88ACC91BC213ADC787F2EA9B"
+  },
+  {
+    "path": "Notes/NoteSkinNotes.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\NoteSkinNotes.cs",
+    "sha256": "C6BF56B787E972679AA26923D98C03D6814F884E7668E5385FBA5A9DA6CC60C6"
+  },
+  {
+    "path": "Notes/NoteSpeedState.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\NoteSpeedState.cs",
+    "sha256": "AAABCD1AD1563E32A3715E18E0DFEDBFBABB0F8D1FD8899D71B12E1D1C9696D3"
+  },
+  {
+    "path": "Notes/NoteTintMaterials.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\NoteTintMaterials.cs",
+    "sha256": "29CEA5A4A827B8C81F3310E60CBA6E0F830B5F22EBC41C72D905B0DB9D07E651"
+  },
+  {
+    "path": "Notes/NoteVisuals.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\NoteVisuals.cs",
+    "sha256": "C74D3577C6F3110EB71F59E5B259BBED6D360C1CCE5AB96E9C1050E9973E15E3"
+  },
+  {
+    "path": "Notes/NoteVisualTint.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\NoteVisualTint.cs",
+    "sha256": "1010346CE887DC256F44B302792E0457EB7528D33A06F947FE1E7506F10A82AE"
+  },
+  {
+    "path": "Notes/PlayableNoteInput.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\PlayableNoteInput.cs",
+    "sha256": "5F51B4E66D45F334068CBB495616D9C2C54B12B9B8CADFC1A6CFFF47A232D6D7"
+  },
+  {
+    "path": "Notes/RingCommands.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\RingCommands.cs",
+    "sha256": "7EF71B4BA8B7C2E90DC188BCA4DA7DFD00F245013355B596E4345D270EC1B060"
+  },
+  {
+    "path": "Notes/ScrollVisualTiming.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\ScrollVisualTiming.cs",
+    "sha256": "CEAFC1D5F72776ECC4A09BCD9A7516B1AECE8B82538406951B0D4E50E15CCE00"
+  },
+  {
+    "path": "Notes/SignedRingNotes.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\SignedRingNotes.cs",
+    "sha256": "97861F60A4D3C25D10E4A40535CA1E2C4F8BC396069D131D29457967FA8DACEE"
+  },
+  {
+    "path": "Notes/SlideAppearance.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\SlideAppearance.cs",
+    "sha256": "5F674E2B847CD9116235323B76201E4293DB3A2995EFE6517D8105B30EBCFAC7"
+  },
+  {
+    "path": "Notes/StarHeadNotes.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\StarHeadNotes.cs",
+    "sha256": "B6EB6888D88D7FE94BD6023002EE43F7EF24E3652948C9A3C9AEDC71B3BFF42F"
+  },
+  {
+    "path": "Notes/TouchBreakHoldC.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\TouchBreakHoldC.cs",
+    "sha256": "3B75C9CDADB0AE3CE7A29B0C9703FF4CA2B54C04BDD2CF2102D943B7974012E9"
+  },
+  {
+    "path": "Notes/TouchBreakNoteB.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\TouchBreakNoteB.cs",
+    "sha256": "0B1018F248246F6BAA07532ABB37BAC182549306A66C55EDAD7F9EA50695CC05"
+  },
+  {
+    "path": "Notes/TouchBreakNoteC.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\TouchBreakNoteC.cs",
+    "sha256": "6FDACF965915AF1ED606FA92829E689FC1E73A066218144A9E0F698841B4973B"
+  },
+  {
+    "path": "Notes/TouchExNotes.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\TouchExNotes.cs",
+    "sha256": "F0276A994CA67D79497264C643D505107436204DB9D15ACAB40CCB400DA714C9"
+  },
+  {
+    "path": "Notes/TouchHoldProgress.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\TouchHoldProgress.cs",
+    "sha256": "7214BB7A8D1F96D7A51548DB7C7567501A23BE6F2AFAC1067E7E379EFCA2735E"
+  },
+  {
+    "path": "Notes/TouchRadiusNotes.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\TouchRadiusNotes.cs",
+    "sha256": "2EBC1D94C9C4BC5BD1A0945EA6F7D19EDEFBD77ACDB4606262DED034A102C294"
+  },
+  {
+    "path": "Notes/TouchScrollNotes.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\TouchScrollNotes.cs",
+    "sha256": "8D2D4C001B2D7389A75D0F3AB19FE63F91E6FCB55CBC5F02B89B43C465D5547F"
+  },
+  {
+    "path": "Notes/TouchStarNoteB.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\TouchStarNoteB.cs",
+    "sha256": "16A45558D3A97B79331ECD3946B1F7DB9DE7B4E74C86F9D0086EF50B420D0DA3"
+  },
+  {
+    "path": "Notes/TouchStarNoteC.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\TouchStarNoteC.cs",
+    "sha256": "26A1B2599DEE7A335C006FA90E7DA6536777A6E19679D528DFBD4701269506E7"
+  },
+  {
+    "path": "Notes/Libs/BorrowedAssets.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\BorrowedAssets.cs",
+    "sha256": "AFFB20BCFDED10E9B8504CE0BC5D31A7BD69BD3017AF88A64A181BC41BE101E0"
+  },
+  {
+    "path": "Notes/Libs/BorrowedPath.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\BorrowedPath.cs",
+    "sha256": "57EB82933DE73FF1C643ADBA1D53C75876DE2A7D1C230270D89B8BA3B66C906F"
+  },
+  {
+    "path": "Notes/Libs/ChartMediaTimelineController.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\ChartMediaTimelineController.cs",
+    "sha256": "D2E32A3150D584352AAFFEBBAAF774F26799BD2D300B8803FACE6D2A9127E731"
+  },
+  {
+    "path": "Notes/Libs/ComboDisplayLayout.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\ComboDisplayLayout.cs",
+    "sha256": "46FC94DE2A0A53AE8FF2FE310B4FB2423EE932811FE12909E6881713EE48CE36"
+  },
+  {
+    "path": "Notes/Libs/CustomSlideNoteData.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\CustomSlideNoteData.cs",
+    "sha256": "71677C75A75BFA190947989EA3C7C52F3CFD1702350A2EE23C54F22F59A65EE2"
+  },
+  {
+    "path": "Notes/Libs/FrameViewportMath.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\FrameViewportMath.cs",
+    "sha256": "AB3323C59609B0A52AED6CD4BB1A132DB88A3DEA6B8F98B19B0B893A0EA61FF4"
+  },
+  {
+    "path": "Notes/Libs/MaiGeometry.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MaiGeometry.cs",
+    "sha256": "FA250B67D0AD465D485FEDDC247A0913F92564526F676419C41F74C0F6DDA1C2"
+  },
+  {
+    "path": "Notes/Libs/MajdataDZoneGeometry.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataDZoneGeometry.cs",
+    "sha256": "5E402D6DEC3034AE71E8B1C91CE548725515C8C79D08A3408B1411850A68C1E3"
+  },
+  {
+    "path": "Notes/Libs/MajdataRegularJudge.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataRegularJudge.cs",
+    "sha256": "7DD14C02FCAC511005E2EA34150516790C26BBB180AF84A9DC1EF3477D17E30E"
+  },
+  {
+    "path": "Notes/Libs/MajdataRegularPath.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataRegularPath.cs",
+    "sha256": "4367AE5B20CF548504E515D52383CE8F95ED17A49DB305B86D4A05C3466D3489"
+  },
+  {
+    "path": "Notes/Libs/MajdataRegularPath.Geometry.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataRegularPath.Geometry.cs",
+    "sha256": "C036B103E0DB96461BB42CDD846834563A9BF61BACFC472CBEA7C07188DE473A"
+  },
+  {
+    "path": "Notes/Libs/MajdataRegularPath.Prefabs.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataRegularPath.Prefabs.cs",
+    "sha256": "F846F7BDEE25E61CCD90F202FEC53F644753BF05551A9D092E6063632FEF05A7"
+  },
+  {
+    "path": "Notes/Libs/MajdataSingleOrbitPath.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataSingleOrbitPath.cs",
+    "sha256": "7E7F17C39F7823FA79031729B2120DD30C11A07A80CF45E6055449D9C6CAF685"
+  },
+  {
+    "path": "Notes/Libs/MajdataSlideInput.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataSlideInput.cs",
+    "sha256": "2076A760295491EDBB59B97658C2117458484C3B9CC12A491F5E811AC208354C"
+  },
+  {
+    "path": "Notes/Libs/MajdataSlideJudge.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataSlideJudge.cs",
+    "sha256": "362338BDA95B526A353758797AA5F09F30ECD606BB5E2E9B2DD74F5A45C881CD"
+  },
+  {
+    "path": "Notes/Libs/MajdataSlidePath.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataSlidePath.cs",
+    "sha256": "A4B7BDBC9BA01671E817017F7242BE88226CEF9180297ECFBCD9A19AF6A4332A"
+  },
+  {
+    "path": "Notes/Libs/MajdataTangentPath.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\MajdataTangentPath.cs",
+    "sha256": "8CAEA152F8B742280DD5214C15EA778BD9E6A17EB9A6DACFD1915492DE306DEF"
+  },
+  {
+    "path": "Notes/Libs/NativeComboValues.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\NativeComboValues.cs",
+    "sha256": "3A45B6BB7FA483122049E82CC7266F0FE18ED48B6D54E8BEAA770C93B1583A17"
+  },
+  {
+    "path": "Notes/Libs/NativeDFanGeometry.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\NativeDFanGeometry.cs",
+    "sha256": "3B26E36BB6E24128BC1EFB9DC1033A9DF69C7ABEA179ED042335C823E9306766"
+  },
+  {
+    "path": "Notes/Libs/NativeDSlideGeometry.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\NativeDSlideGeometry.cs",
+    "sha256": "FEAAE1D82B53658AE60B0426031A5B707E875426E03639E26B3CA44516BD1FD7"
+  },
+  {
+    "path": "Notes/Libs/NativeMediaBackground.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\NativeMediaBackground.cs",
+    "sha256": "F2464E2E65A11F3613E2D0CAF0BBEA3020AE6B912DF94AC21D028F97F685F0F9"
+  },
+  {
+    "path": "Notes/Libs/NativeTouchSlideGeometry.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\NativeTouchSlideGeometry.cs",
+    "sha256": "E3C9FF311000D8A6807D7355FEEC07B0562AB0FF2158ED7DD248CBB44994CDA1"
+  },
+  {
+    "path": "Notes/Libs/NoteSkinAssets.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\NoteSkinAssets.cs",
+    "sha256": "DD376BC16E3B89EEC9B7DEAB906B34BB0015D0E7A930E5FE1240037AACC533F3"
+  },
+  {
+    "path": "Notes/Libs/ParametricSlidePath.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\ParametricSlidePath.cs",
+    "sha256": "60ABA7B6CF8A7A06EC4A7729D1AF5F8AB9FD9DD3FCB485153556C0D6EBCBED35"
+  },
+  {
+    "path": "Notes/Libs/PresentationViewportMath.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\PresentationViewportMath.cs",
+    "sha256": "6C795B09CFA8254C2050FE88E3E839E69AEC9DB13097D40B0507F85CF2F2F83B"
+  },
+  {
+    "path": "Notes/Libs/RuntimeChartStore.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\RuntimeChartStore.cs",
+    "sha256": "18581A1B78758E86DE89DA787ED3CD1F7F830C1ECF7CE3BF3C6B1CAD8AFE792E"
+  },
+  {
+    "path": "Notes/Libs/SelectableOrbitPathGeometry.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\SelectableOrbitPathGeometry.cs",
+    "sha256": "585D7812C2A0F48231E8C6CA7530546523CF2B8C34EBC492DFB98075E066E651"
+  },
+  {
+    "path": "Notes/Libs/SlideCodeParser.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\SlideCodeParser.cs",
+    "sha256": "898CFF9FA6BBF4A91EDBC79CE43DC978779AF2E9BD9B759EC99B43D74BCB6B89"
+  },
+  {
+    "path": "Notes/Libs/SlideDataBuilder.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\SlideDataBuilder.cs",
+    "sha256": "F18D87583EEFC1F3B543322CC8FEF1EC500EAB3CC77910C7F0CACD91C365C13F"
+  },
+  {
+    "path": "Notes/Libs/SlidePathGenerator.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\SlidePathGenerator.cs",
+    "sha256": "1C988837541A98688B217F201B4E392F98C9495C9E6723F2C968C30382B60AFD"
+  },
+  {
+    "path": "Notes/Libs/SubtitleViewportMath.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\SubtitleViewportMath.cs",
+    "sha256": "BD98563609A9B2517321794AF99BD23416BD8C8F5EDBFB1EF56F1413D5DFE18C"
+  },
+  {
+    "path": "Notes/Libs/TouchSlideDirection.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\CustomNoteTypes\\Libs\\TouchSlideDirection.cs",
+    "sha256": "28BE67CB4A48EC5C609672F84F18243070A2BFF08D522FC6AD88E17DEA3B6A2D"
+  },
+  {
+    "path": "ChartVisuals/VisualState.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\VisualState.cs",
+    "sha256": "886A66270B554F5EAB60D40325C0ADC9A9874CCCDC093FA6F40CA8AE4842A95A"
+  },
+  {
+    "path": "ChartVisuals/RingState.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\RingState.cs",
+    "sha256": "CED81DA45ED53DE51684838FA7172AD11D3039CDA3A4B86752E787578E598DBF"
+  },
+  {
+    "path": "ChartVisuals/PresentationCommands.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\PresentationCommands.cs",
+    "sha256": "DDD577C74168A0206BF22AADB9865734FD7FB63C53860B16FC4940DED73FA100"
+  },
+  {
+    "path": "ChartVisuals/ScreenEffectCommands.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ScreenEffectCommands.cs",
+    "sha256": "DD82286BA713770732E2A2493AB62871AB33192ECCEE1A2ED06B0803FB59EEEF"
+  },
+  {
+    "path": "ChartVisuals/NoteSkin.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\NoteSkin.cs",
+    "sha256": "AC4FCFBDCD1426277F61B0C29813CD0AD9EFD1B0030398215C10276DA2ADEDAE"
+  },
+  {
+    "path": "ChartVisuals/BorrowedTrajectory.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\BorrowedTrajectory.cs",
+    "sha256": "6B5ECFE1137D90778C85403365598501330DC7461082CCF015FAEBC1D9A3FEC1"
+  },
+  {
+    "path": "ChartVisuals/TouchRadius.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\TouchRadius.cs",
+    "sha256": "FE54A2DCB5346F17956810A7CAB2916D8E723DBF5F0B2D14523128C86D410364"
+  },
+  {
+    "path": "ChartVisuals/StarHead.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\StarHead.cs",
+    "sha256": "4520D55B56299C90D8CD52B70817BCF6F9AED0418FE8501C69470538BE110549"
+  },
+  {
+    "path": "ChartVisuals/MediaCommands.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\MediaCommands.cs",
+    "sha256": "F97E8E66268E89ED37735120B0A7ED3D7596A93FF79AD65D8C81D0ABBBA5D0AD"
+  },
+  {
+    "path": "ChartVisuals/ComboDisplayCommands.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ComboDisplayCommands.cs",
+    "sha256": "6A9027A2183E5D4C05D1F07E150D9580D7CC57CCE0E2896E0E242B972F5957D2"
+  },
+  {
+    "path": "ChartVisuals/JudgeLineCommands.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\JudgeLineCommands.cs",
+    "sha256": "7BDE69B05E4630C3BD8C60731411C291C1DC72715F0F7A35E0F727EF20434128"
+  },
+  {
+    "path": "ChartVisuals/JudgeLineExpansionCommands.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\JudgeLineExpansionCommands.cs",
+    "sha256": "F094B469627CF2293EC32B434666129F45F45608BD4EE89E1358401FC1557924"
+  },
+  {
+    "path": "ChartVisuals/SubtitleCommands.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\SubtitleCommands.cs",
+    "sha256": "61A54C468EE9C41EDE289C4819FC0BEA48FDC0489DE45D74723ED655168604E1"
+  },
+  {
+    "path": "ChartVisuals/NoiseZones.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\NoiseZones.cs",
+    "sha256": "A0D58F782E9975609EE57D84FB63090D10D6CFD0B4A2A98B4B0E8E99CD6D69AA"
+  },
+  {
+    "path": "ChartVisuals/NoiseZoneSpec.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\NoiseZoneSpec.cs",
+    "sha256": "B2C8E61EAB356993D6DBCDC49FE8125F09C3898E338F7221A8D32CB9CC9E617D"
+  },
+  {
+    "path": "ChartVisuals/CanonicalSlideCodeParser.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\ConverterSource\\visual\\CanonicalSlideCodeParser.cs",
+    "sha256": "9A2064F5A539DBEB7B30DD25AA94DF47824BC824E66C4A590ECA9FA0CF0E3178"
+  },
+  {
+    "path": "Difficulty/ExtraDifficulty.cs",
+    "origin": "C:\\项目\\mc_repro\\growth-ending-performance-20261006\\candidate-source\\ExtraDifficulty.cs",
+    "sha256": "26C07B0ADB4037F435067779FABB9E24DFA2C296AD9FEC53AC0ABB793863E994"
+  },
+  {
+    "path": "Notes/ExtendNotesPool.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\ExtendNotesPool.cs",
+    "sha256": "D94F651A57EC1C38E4F8AAD5CF0AE42B57D69943C022D4A940DC1D9B993DA7F1"
+  },
+  {
+    "path": "Notes/ReviveFinaleVSlide.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\ReviveFinaleVSlide.cs",
+    "sha256": "F82D0F06ABAD75953D6F073CFF28A2F94BD0A812A3BAF0B74EDC3143D4245037"
+  },
+  {
+    "path": "Notes/TapInHoldFix.cs",
+    "origin": "C:\\项目\\MaiChartManager\\MaiChartManager\\AquaMai\\AquaMai.Mods\\Fancy\\GamePlay\\TapInHoldFix.cs",
+    "sha256": "896223407D922BBDDA61998FDF14611CFA37DCEA5D873686ABD32B79F5E7E6CD"
+  }
+]
