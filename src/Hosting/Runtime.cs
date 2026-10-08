@@ -10,7 +10,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.0", "SaltNya")]
+[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.1", "SaltNya")]
 [assembly: MelonGame("sega-interactive", "Sinmai")]
 [assembly: MelonPriority(-10000)]
 [assembly: HarmonyDontPatchAll]

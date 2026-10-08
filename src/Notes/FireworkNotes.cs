@@ -18,7 +18,7 @@ public partial class CustomNoteTypes
 {
     private sealed class FireworkValue { public NotesReader Reader; }
     private sealed class FireworkLease { public FireworkValue Value; public bool Emitted; public int Monitor; }
-    private sealed class FireworkDisplay { public GameObject Object; public NotesReader Reader; public Material[] Materials; public SpriteRenderer[] Renderers; public Animator Animator; }
+    private sealed class FireworkDisplay { public GameObject Object; public NotesReader Reader; public Material[] Materials; public SpriteRenderer[] Renderers; public Animator Animator; public FireworkPlayfieldClip Clip; }
     public sealed class FireworkEndState { internal bool Eligible; internal Vector3 Position; internal Transform Basis; internal int Layer, SortLayer; }
     private static readonly ConditionalWeakTable<NoteData, FireworkValue> FireworkNotes = new();
     private static readonly Dictionary<NoteBase, FireworkLease> FireworkOwners = new();
@@ -130,6 +130,7 @@ public partial class CustomNoteTypes
         // Animator Normal uses Unity scaled time, as the reference. No note
         // time, input, judge result or playback state is advanced here.
         lease.Animator.SetTrigger("Fire");
+        lease.Clip.Refresh();
     }
 
     private static bool LoadFireworkGraphics()
@@ -148,6 +149,15 @@ public partial class CustomNoteTypes
                 FireworkHanabiShader = FireworkBundle.LoadAsset<Shader>("assets/aquamai/hanabi.shader");
                 if (FireworkController == null || FireworkColorShader == null || FireworkHanabiShader == null || !FireworkColorShader.isSupported || !FireworkHanabiShader.isSupported)
                     throw new InvalidDataException("Incomplete Firework shaders/animation");
+                // Older bundles cannot contain the firework inside the playfield.
+                // Keep native feedback instead of loading an uncropped graphic.
+                foreach (var shader in new[] { FireworkColorShader, FireworkHanabiShader })
+                {
+                    var check = new Material(shader);
+                    var clips = check.HasProperty("_PlayfieldClipX") && check.HasProperty("_PlayfieldClipY");
+                    Object.Destroy(check);
+                    if (!clips) throw new InvalidDataException("Update Sinmai-Alpha/Alpha/Firework.ab together with the mod");
+                }
                 // Preserve the reference build's DXT5 pixels, transparent-edge
                 // dilation and imported tight meshes instead of reimporting PNGs.
                 FireworkBall = FireworkBundle.LoadAsset<Sprite>("assets/sprite/colorball.sprite");
@@ -194,7 +204,11 @@ public partial class CustomNoteTypes
         animator.cullingMode = AnimatorCullingMode.AlwaysAnimate;
         animator.updateMode = AnimatorUpdateMode.Normal; animator.applyRootMotion = false;
         animator.runtimeAnimatorController = FireworkController;
-        return new FireworkDisplay { Object = display, Reader = reader, Materials = materials, Renderers = renderers, Animator = animator };
+        var owner = basis.GetComponentInParent<GameMonitor>();
+        var main = owner != null ? Traverse.Create(owner).Field("Main").GetValue<CanvasGroup>() : null;
+        var clip = display.AddComponent<FireworkPlayfieldClip>();
+        clip.Bind(main != null ? main.transform as RectTransform : null, renderers, materials);
+        return new FireworkDisplay { Object = display, Reader = reader, Materials = materials, Renderers = renderers, Animator = animator, Clip = clip };
     }
 
     [HarmonyPatch(typeof(TapCEffect), "Intialize")]
