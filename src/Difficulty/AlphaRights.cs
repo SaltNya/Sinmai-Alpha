@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -92,6 +92,15 @@ public static class AlphaRights
                 label.alignment = TextAlignmentOptions.Center; label.color = Color.white;
             }
             label.font = font;
+            // TMP outline setters use a per-label material, leaving the game's font material unchanged.
+            label.fontStyle = FontStyles.Bold;
+            label.outlineColor = Color.black;
+            label.outlineWidth = 0.18f;
+            // TMP's SDF outline is centered on the face edge. Expanding the
+            // face by the same amount moves its inner edge back outside the
+            // bold glyph, so the black border cannot eat the white strokes.
+            label.fontMaterial.SetFloat(ShaderUtilities.ID_FaceDilate, 0.18f);
+            label.UpdateMeshPadding();
             label.text = Encoding.UTF8.GetString(Convert.FromBase64String(key.Substring(Prefix.Length)));
             label.gameObject.SetActive(true);
         }
