@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -19,7 +19,7 @@ public partial class CustomNoteTypes
 {
     private sealed class VisualPayload { public VisualNote Note; public string Stream; public MajdataRegularPath SlideGeometry; }
     private sealed class VisualTimeline { public readonly Dictionary<string, List<VisualChange>> Streams = new(); }
-    private sealed class VisualPart { public SpriteRenderer Native; public bool Guide, Mine; }
+    private sealed class VisualPart { public SpriteRenderer Native; public bool Guide, Mine, Hint; }
     private sealed class VisualLease
     {
         public int Monitor;
@@ -84,6 +84,7 @@ public partial class CustomNoteTypes
     public static void ResetVisualCommands(NotesReader __instance)
     {
         PendingVisualCommands.Clear();
+        ReserveVisualNotes.Remove(__instance);
         VisualTimelines.Remove(__instance);
     }
     [HarmonyPrefix, HarmonyPatch(typeof(NotesRecord), "addRecord", new[] { typeof(string) })]
@@ -184,6 +185,12 @@ public partial class CustomNoteTypes
                 var debug = fields.Field("SpriteRenderDebug").GetValue<SpriteRenderer>();
                 foreach (var sprite in __instance.GetComponentsInChildren<SpriteRenderer>(true))
                     if (sprite != debug && sprite.GetComponentInParent<NoteGuide>() == null) Add(sprite);
+                foreach (var hint in __instance.GetComponentsInChildren<NoteGuide>(true))
+                {
+                    var line = Traverse.Create(hint).Field("_spriteEachRender").GetValue<SpriteRenderer>();
+                    if (line != null && seen.Add(line))
+                        lease.Parts.Add(new VisualPart { Native = line, Hint = true });
+                }
             }
             VisualOwners[__instance] = lease;
         }
@@ -196,7 +203,7 @@ public partial class CustomNoteTypes
         var progress = IsTouchProgressMaterial(native);
         var color = progress ? live.Color : live.Color ?? baseline.Color;
         var alpha = progress ? live.Alpha : live.Alpha ?? baseline.Alpha;
-        var x = live.X ?? baseline.X; var y = live.Y ?? baseline.Y;
+        var x = part.Hint ? null : live.X ?? baseline.X; var y = part.Hint ? null : live.Y ?? baseline.Y;
         if (!color.HasValue && !alpha.HasValue && !x.HasValue) return;
         if (!VisualOverlays.TryGetValue(native, out var overlay) || overlay.Render == null)
         {
@@ -211,7 +218,7 @@ public partial class CustomNoteTypes
         render.sharedMaterial = native.sharedMaterial;
         native.GetPropertyBlock(overlay.Properties); render.SetPropertyBlock(overlay.Properties);
         if (progress) ApplyTouchProgressLiveVisual(render, live);
-        var gpuTint = !progress && (color.HasValue || alpha.HasValue) &&
+        var gpuTint = !part.Hint && !progress && (color.HasValue || alpha.HasValue) &&
             ApplyNoteTintMaterial(render, source, native.color, color, alpha, native.sharedMaterial);
         if (!progress && !gpuTint && color.HasValue)
             render.sprite = GetVisualTintSprite(source, color.Value, native.color);
@@ -235,6 +242,7 @@ public partial class CustomNoteTypes
     {
         if (!(CustomNoteTypes.FeaturesEnabled(__instance))) {  return; }
 
+        RestoreReserveVisuals(__instance.MonitorIndex);
         foreach (var pair in VisualOwners)
             if (pair.Value.Monitor == __instance.MonitorIndex) RestoreVisualLease(pair.Key);
     }
@@ -245,6 +253,7 @@ public partial class CustomNoteTypes
 
         var reader = NotesManager.Instance(__instance.MonitorIndex).getReader();
         VisualTimelines.TryGetValue(reader, out var timeline);
+        ApplyReserveVisuals(__instance.MonitorIndex, reader, timeline);
         foreach (var pair in VisualOwners.ToArray())
         {
             var lease = pair.Value;
@@ -266,6 +275,8 @@ public partial class CustomNoteTypes
     [HarmonyPrefix, HarmonyPatch(typeof(GameCtrl), "ForceNoteCollect")]
     public static void CollectVisualNotes(GameCtrl __instance)
     {
+        RestoreReserveVisuals(__instance.MonitorIndex);
+        foreach (var owner in ReserveVisuals.Where(p => p.Value.Monitor == __instance.MonitorIndex).Select(p => p.Key).ToArray()) ReserveVisuals.Remove(owner);
         foreach (var pair in VisualOwners.Where(p => p.Value.Monitor == __instance.MonitorIndex).ToArray())
         { RestoreVisualLease(pair.Key); VisualOwners.Remove(pair.Key); }
         if (VisualOwners.Count == 0) ClearVisualTintCache();
