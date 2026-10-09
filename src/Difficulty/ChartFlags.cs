@@ -9,6 +9,8 @@ public sealed class ChartFlags
 {
     public string Theme = "None";
     public bool AllowTapInHold;
+    public bool CustomLevelText;
+    public string LevelText;
     public bool HasTapInHoldOverride;
     public bool? TapInHoldOverride => HasTapInHoldOverride ? AllowTapInHold : (bool?)null;
     private readonly List<string> options = new List<string>();
@@ -27,6 +29,10 @@ public sealed class ChartFlags
                 flags.AllowTapInHold = pair.Length == 1 || pair[1].Trim().Equals("true", StringComparison.OrdinalIgnoreCase);
                 flags.options.Add(line);
             }
+            else if (pair[0].Trim().Equals("CustomLevelText", StringComparison.OrdinalIgnoreCase))
+            { flags.CustomLevelText = pair.Length == 2 && bool.TryParse(pair[1].Trim(), out var enabled) && enabled; flags.options.Add(raw); }
+            else if (pair[0].Trim().Equals("LevelText", StringComparison.OrdinalIgnoreCase))
+            { flags.LevelText = pair.Length == 2 ? pair[1].Trim() : null; flags.options.Add(raw); }
             else if (pair[0].Trim().Equals("Difficulty", StringComparison.OrdinalIgnoreCase) && pair.Length == 2) flags.Theme = pair[1].Trim();
             else if (pair.Length == 1) flags.Theme = line;
             else flags.options.Add(raw);

@@ -25,7 +25,7 @@ using Object = UnityEngine.Object;
 namespace SinmaiAlpha.Difficulty;
 
 
-public static class ExtraDifficulty
+public static partial class ExtraDifficulty
 {
 
     public static readonly string strongTextureDir = "Sinmai-Alpha/ExtraDifficulty";
@@ -54,7 +54,7 @@ public static class ExtraDifficulty
 
     public static void OnBeforePatch()
     {
-        Markers.Clear(); themes=null;
+        Markers.Clear(); themes=null; LevelFlags.Clear(); LevelTextWarnings.Clear();
     }
     private static bool HasMarker(string chartPath) => MarkerTheme(chartPath) != Theme.None;
     private static Theme MarkerTheme(string chartPath, int difficulty = Master)
@@ -87,7 +87,7 @@ public static class ExtraDifficulty
     private static bool IsTagged(MusicIdentity identity, int difficulty) => ThemeFor(identity, difficulty) != Theme.None;
     private static Theme ThemeFor(MusicIdentity identity, int difficulty)
     {
-        if (!taggedMasterSkin || identity == null || identity.Utage || difficulty < 0 || difficulty > 4 || identity.Id <= 0 || identity.Id >= 100000) return Theme.None;
+        if (!Settings.Current.ExtraDifficulty || !taggedMasterSkin || identity == null || identity.Utage || difficulty < 0 || difficulty > 4 || identity.Id <= 0 || identity.Id >= 100000) return Theme.None;
         // Use the game's winning music record, including Opt overrides. An
         // identically numbered song in another package cannot lend its flag.
         var music = Singleton<DataManager>.Instance.GetMusic(identity.Id);
@@ -297,6 +297,7 @@ public static class ExtraDifficulty
     }
     private static void PrepareNumbers(object owner, int difficulty, bool utage, Theme theme)
     {
+        BindLevelText(owner, difficulty, utage, theme);
         var sheet = NumberSheet(theme) ?? NativeSheet(difficulty, utage);
         if (sheet == null) return;
         foreach (var name in new[] { "_digitLevel", "_doubleDigitLevel", "_difficultySingle", "_difficultyDouble", "_singleLevel", "_doubleLevel" })
@@ -319,7 +320,7 @@ public static class ExtraDifficulty
         foreach (var image in owner.GetComponentsInChildren<Image>(true))
         {
             // Owned by ChangeDifficulty with the button's destination slot.
-            if (IsDifficultyButtonBase(image)) continue;
+            if (IsDifficultyButtonBase(image) || IsDifficultyHeaderImage(image)) continue;
             var identity = Identity(image); var theme = ThemeFor(identity, identity.Difficulty);
             if (image is MultipleImage multiple)
             {
@@ -448,7 +449,7 @@ public static class ExtraDifficulty
         {
             Information.Remove(__instance); Information.Add(__instance, new MusicIdentity { Id = __0?.MusicId ?? -1,
                 Difficulty = __0?.MusicDifficultyID ?? -1, Utage = __0 != null && __0.MusicId >= 100000 });
-            if (__0 != null) return;
+            if (__0 != null || !Settings.Current.ExtraDifficulty) return;
             ApplyImage(Field<Image>(__instance, "difficultyImage"), null);
             ApplyImage(Field<Image>(__instance, "musicJacketBgImage"), null);
             PrepareNumbers(__instance, Master, false, Theme.None);
@@ -472,6 +473,7 @@ public static class ExtraDifficulty
         {
             yield return AccessTools.Method(typeof(MusicChainCardObejct), "SetLevel");
             yield return AccessTools.Method(typeof(ResultMonitor), "SetLevel");
+            yield return AccessTools.Method(typeof(SingleResultCardController), "SetLevel");
             yield return AccessTools.Method(typeof(KOP_ResultTrackData), "SetDifficultyLevel");
             yield return AccessTools.Method(typeof(MusicInfomationController), "Setlevel");
             yield return AccessTools.Method(typeof(TrackStartMonitor), "SetTrackStart");
