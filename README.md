@@ -16,8 +16,10 @@ DLL 位于`/Package/Mods/Sinmai-Alpha.dll`；贴图和特效包位于
 A000 内的谱面始终绕过扩展玩法；其余 MA2 仅在包含自定义音符、扩展字段或有效特效命令时启用。
 纯原版谱不加载自定义音符资源、不分配额外音效通道，也不执行 Alpha 的音符池扩容和判定修改。
 
-### 难度外观
+### 难度和模式和等级外观
 
+- 难度：
+  
 在对应 MA2 旁放同名 `.ExtraDifficulty.flag`，内容为难度文件夹名，或 `None` 恢复原版。
 例如 `011451_03.ma2` 配 `011451_03.ExtraDifficulty.flag`。
 若前面无前缀，比如`ExtraDifficulty.flag`则只作用于 MASTER 难度。
@@ -33,6 +35,38 @@ A000 内的谱面始终绕过扩展玩法；其余 MA2 仅在包含自定义音�
   "aliases": ["INS"]
 }
 ```
+
+
+
+- 模式：
+  
+Alpha 模式通过 MA2 文件头中的标签启用：
+
+`// SINMAI_ALPHA_MODE	Alpha`
+
+SINMAI_ALPHA_MODE 与 Alpha 之间必须使用 Tab 制表符。手动添加时可放在 VERSION 行之后。
+支持此功能的 MuConvert-Alpha 会在转谱时自动写入标签。
+模式外观以标签为准，不依靠检测扩展要素决定是否显示。带标签的谱面会在对应的选曲、开场及结算界面显示 Alpha 模式标识。
+此功能仅替换模式贴图，实际谱面类型仍沿用原本的标准／DX 类型，判定规则与成绩记录方式保持原有类型。
+贴图位于：
+
+`Sinmai-Alpha/ExtraMode/Alpha/`
+
+移除 MA2 中的模式标签可恢复原版模式标识。
+
+
+
+- 自定义等级文字：
+  
+可将原本的数字等级显示替换为自定义文字。在谱面 .ExtraDifficulty.flag 中加入：
+
+```
+Inscribed
+CustomLevelText=true
+LevelText=∞
+AllowTapInHold=true
+```
+
 ### 允许 Hold 夹 Tap
 
 在逐谱 `.ExtraDifficulty.flag` 中增加独立一行 `AllowTapInHold=true`。
@@ -56,8 +90,6 @@ AllowTapInHold=true
 
 
 ### 鸣谢
-https://github.com/Jian04/MajdataViewAlpha  Alpha制谱器
-
-https://github.com/MuNET-OSS/MuConvert  转谱器
-
-https://github.com/MuNET-OSS/AquaMai  Aquamai
+- [MajdataViewAlpha](https://github.com/Jian04/MajdataViewAlpha)：Alpha 制谱器。
+- [MuConvert](https://github.com/MuNET-OSS/MuConvert)：转谱器。
+- [AquaMai](https://github.com/MuNET-OSS/AquaMai)：模组框架及相关实现。
