@@ -18,7 +18,16 @@ public partial class CustomNoteTypes
     private static readonly FieldInfo RingSprite = AccessTools.Field(typeof(NoteBase), "SpriteRender");
     private static readonly FieldInfo RingExSprite = AccessTools.Field(typeof(NoteBase), "SpriteRenderEx");
     private static readonly FieldInfo RingGuide = AccessTools.Field(typeof(NoteBase), "GuideObj");
+    private static readonly FieldInfo RingBreakEffect = AccessTools.Field(typeof(BreakHoldNote), "BreakEffectSprite");
     private static bool _loggedRingVisualError;
+
+    private static void SyncBreakHoldGlow(NoteBase owner, SpriteRenderer body)
+    {
+        // Native Execute sized this layer before Alpha rewrote the Hold body.
+        // Reapply the final size for SV/HS/reversal and bounce presentations.
+        if (owner is BreakHoldNote && RingBreakEffect.GetValue(owner) is SpriteRenderer glow)
+            glow.size = body.size;
+    }
 
     private static bool RingVisualActive(int index, float appear, float duration, float spawn, float now, float destroy = SpawnJudgeLine, bool once = false)
     {
@@ -179,6 +188,7 @@ public partial class CustomNoteTypes
                     if (ex != null) ex.size = sprite.size;
                     var effect = fields.Field("EffectSprite").GetValue<SpriteRenderer>();
                     if (effect != null) effect.size = sprite.size;
+                    SyncBreakHoldGlow(__instance, sprite);
                     if (tailObject != null)
                     {
                         tailObject.SetActive(hasBody && tail.Running);

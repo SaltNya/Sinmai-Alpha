@@ -91,6 +91,7 @@ public partial class CustomNoteTypes
         if (ex != null) ex.size = sprite.size;
         var effect = fields.Field("EffectSprite").GetValue<SpriteRenderer>();
         if (effect != null) effect.size = sprite.size;
+        SyncBreakHoldGlow(owner, sprite);
         var tailObject = fields.Field("EndPointObj").GetValue<GameObject>();
         if (tailObject != null)
         {
