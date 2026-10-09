@@ -1,0 +1,18 @@
+{
+  "displayScale": 0.85,
+  "displayOffsetX": -0.06,
+  "displayOffsetY": -0.04,
+  "chineseBold": 0.65,
+  "chineseOffsetX": -2,
+  "fontSize": 53.33333,
+  "tracking": 10,
+  "gradientAngle": -52,
+  "gradientSplit": 0.49756,
+  "fillTintStart": 0.10,
+  "fillTintEnd": 0.04,
+  "strokeSize": 1.25,
+  "shadowSize": 2.5,
+  "strokeBrightness": 0.57,
+  "shadowBrightness": 0.87,
+  "shadowSpread": 0.30
+}
