@@ -10,7 +10,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.1", "SaltNya")]
+[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.3", "SaltNya")]
 [assembly: MelonGame("sega-interactive", "Sinmai")]
 [assembly: MelonPriority(-10000)]
 [assembly: HarmonyDontPatchAll]
@@ -27,7 +27,7 @@ namespace SinmaiAlpha
             Notes.CustomNoteTypes.ShowMineHitFeedback = settings.ShowMineHitFeedback;
             Notes.CustomNoteTypes.MineVolume = Mathf.Clamp01(settings.MineVolume);
             Notes.ExtendNotesPool.count = Math.Max(0, Math.Min(512, settings.ExtraPoolCount));
-            var roots = new List<Type> { typeof(Difficulty.AlphaRights) };
+            var roots = new List<Type> { typeof(Difficulty.AlphaRights), typeof(Difficulty.ExtraMode) };
             if (settings.ChartFeatures) roots.AddRange(new[] { typeof(Notes.CustomNoteTypes), typeof(Notes.ExtendNotesPool), typeof(Notes.ReviveFinaleVSlide), typeof(Notes.TapInHoldFix) });
             if (settings.ExtraDifficulty) roots.Add(typeof(Difficulty.ExtraDifficulty));
             var count = 0;
