@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
@@ -51,10 +51,23 @@ public static partial class ExtraDifficulty
     private static readonly Dictionary<Theme, Sprite[]> NumberSheets = new();
     private static readonly HashSet<Theme> NumberSheetsChecked = new();
     private static bool loaded;
+    private static bool useLegacyUpperFrame;
 
     public static void OnBeforePatch()
     {
         Markers.Clear(); themes=null; LevelFlags.Clear(); LevelTextWarnings.Clear();
+        // Read the running game's constant through reflection: a direct reference
+        // would bake the build-time 1.70 value into this DLL. SDEZ 1.70 uses 27000.
+        try
+        {
+            var version = typeof(MAI2System.ConstParameter).GetField("NowGameVersion", BindingFlags.Public | BindingFlags.Static);
+            useLegacyUpperFrame = version != null && Convert.ToUInt32(version.GetRawConstantValue()) < 27000u;
+        }
+        catch (Exception error)
+        {
+            useLegacyUpperFrame = false;
+            MelonLogger.Warning("[ExtraDifficulty] Cannot detect upper-frame layout, using current textures: " + error.Message);
+        }
     }
     private static bool HasMarker(string chartPath) => MarkerTheme(chartPath) != Theme.None;
     private static Theme MarkerTheme(string chartPath, int difficulty = Master)
@@ -101,6 +114,14 @@ public static partial class ExtraDifficulty
     private static Sprite SpriteFor(string name,Theme theme)
     {
         if(theme==null||name==null)return null;
+        // Central resolution also covers the generic Image/MultipleImage scans
+        // and the result animation callback, not only SetDifficulty.
+        if (useLegacyUpperFrame && name == "UI_UPE_MBase_" + ThemeCode(theme))
+        {
+            var legacyName = name + "_Old";
+            if (Sprites.TryGetValue(theme.Id + "/" + legacyName, out var legacy) ||
+                Sprites.TryGetValue("/" + legacyName, out legacy)) return legacy;
+        }
         if(Sprites.TryGetValue(theme.Id+"/"+name,out var sprite))return sprite;
         return Sprites.TryGetValue("/"+name,out sprite)?sprite:null;
     }
@@ -127,6 +148,7 @@ public static partial class ExtraDifficulty
             {
                 texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
                 if (!texture.LoadImage(File.ReadAllBytes(file))) { Object.Destroy(texture); continue; }
+                PrepareTextureEdges(texture);
                 var name = Path.GetFileNameWithoutExtension(file);
                 var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(.5f, .5f), 100, 0, SpriteMeshType.FullRect);
                 sprite.name = name;
