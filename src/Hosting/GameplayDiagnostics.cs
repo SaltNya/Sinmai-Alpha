@@ -109,7 +109,7 @@ public static partial class GameplayDiagnostics
         [HarmonyPrefix, HarmonyPriority(Priority.First + 300)]
         public static void Prefix()
         {
-            inGame = true; NextSample.Clear(); ResetPerformance();
+            inGame = true; NextSample.Clear(); FanTraces.Clear(); ResetPerformance();
             lock (Sync) { Seen.Clear(); errorCount = 0; }
             Write("GAME START");
             try
@@ -119,6 +119,13 @@ public static partial class GameplayDiagnostics
                     var method = AccessTools.Method(typeof(GameCtrl), name);
                     var info = HarmonyLib.Harmony.GetPatchInfo(method);
                     Write("PATCH " + name + " owners=" + (info == null ? "" : string.Join(",", info.Owners)));
+                }
+                foreach (var method in new[] { AccessTools.Method(typeof(SlideFan), "NoteCheck"),
+                    AccessTools.Method(typeof(SlideRoot), "Judge"), AccessTools.Method(typeof(InputManager), "ConvertTouchPanelRotatePush") })
+                {
+                    var info = HarmonyLib.Harmony.GetPatchInfo(method);
+                    Write("PATCH " + method.DeclaringType.Name + "." + method.Name + " owners=" +
+                        (info == null ? "" : string.Join(",", info.Owners)));
                 }
             }
             catch (Exception e) { Error("patch inventory", e.ToString()); }
@@ -131,7 +138,7 @@ public static partial class GameplayDiagnostics
         [HarmonyFinalizer] public static void Finalizer(Exception __exception)
         {
             if (__exception != null) Error("GameProcess.OnRelease", __exception.ToString());
-            ReportPerformance("GAME END"); Write("GAME RELEASE end"); inGame = false; NextSample.Clear();
+            ReportPerformance("GAME END"); Write("GAME RELEASE end"); inGame = false; NextSample.Clear(); FanTraces.Clear();
         }
     }
     [HarmonyPatch(typeof(GameCtrl), "UpdateCtrl")]

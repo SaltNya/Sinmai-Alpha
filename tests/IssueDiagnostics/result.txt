@@ -1,0 +1,2 @@
+PASS: default switches off; all 8 diagnostic Harmony groups installed; real timeline NEON name/value/parameters captured; 40ms injected slow frame recorded; WiFi completion grade/lanes reported exactly once; background log shutdown.
+NEON=1{eventMs=0,params=EF1|1,0,0,0,0,1,0,0,0};

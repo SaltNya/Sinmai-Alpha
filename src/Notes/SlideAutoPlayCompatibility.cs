@@ -50,6 +50,9 @@ public partial class CustomNoteTypes
         public static IEnumerable<MethodBase> TargetMethods()
         {
             yield return AccessTools.Method(typeof(SlideRoot), "NoteCheck");
+            // Fan overrides NoteCheck. It must consult the same live mode as
+            // SlideRoot.Judge, including input/practice mods installed later.
+            yield return AccessTools.DeclaredMethod(typeof(SlideFan), "NoteCheck");
             yield return AccessTools.Method(typeof(SlideRoot), "Judge");
         }
 

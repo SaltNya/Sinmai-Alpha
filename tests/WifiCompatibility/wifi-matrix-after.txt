@@ -1,0 +1,12 @@
+requestedAuto=False grade=15 delta=-300 wait=100 result=4 inputCalls=3
+requestedAuto=False grade=15 delta=-100 wait=100 result=7 inputCalls=3
+requestedAuto=False grade=15 delta=0 wait=100 result=7 inputCalls=3
+requestedAuto=False grade=15 delta=50 wait=100 result=7 inputCalls=3
+requestedAuto=False grade=15 delta=100 wait=100 result=7 inputCalls=3
+requestedAuto=False grade=15 delta=300 wait=100 result=11 inputCalls=3
+requestedAuto=True grade=15 delta=-300 wait=100 result=15 inputCalls=0
+requestedAuto=True grade=15 delta=-100 wait=100 result=15 inputCalls=0
+requestedAuto=True grade=15 delta=0 wait=100 result=15 inputCalls=0
+requestedAuto=True grade=15 delta=50 wait=100 result=1 inputCalls=0
+requestedAuto=True grade=15 delta=100 wait=100 result=1 inputCalls=0
+requestedAuto=True grade=15 delta=300 wait=100 result=1 inputCalls=0

@@ -15,7 +15,7 @@ using Manager;
 [assembly:MelonGame("sega-interactive","Sinmai")]
 [assembly:HarmonyDontPatchAll]
 public class TintProbe:MelonMod {
- const string Root=@"C:\项目\Alpha060-TintPerf-20261014";
+ const string Root=@"C:\项目\Alpha016-IssueFix-20261015/Tint";
  const BindingFlags Flags=BindingFlags.Static|BindingFlags.Instance|BindingFlags.Public|BindingFlags.NonPublic;
  System.Type custom;Assembly asm;StringBuilder report=new StringBuilder();int frames;bool done;
  object Call(string n,params object[] a)=>AccessTools.Method(custom,n).Invoke(null,a);
@@ -23,7 +23,7 @@ public class TintProbe:MelonMod {
  void Check(bool v,string m){if(!v)throw new Exception(m);report.AppendLine("PASS "+m);}
  public override void OnUpdate(){if(done||++frames<30)return;done=true;try{Run();File.WriteAllText(Root+"/result.txt","PASS\n"+report);}catch(Exception e){File.WriteAllText(Root+"/result.txt","FAIL\n"+e+"\n"+report);}Application.Quit();}
  void Run(){
- asm=Assembly.LoadFrom(@"C:\项目\Alpha060-GitPublish-20261014\Sinmai-Alpha\bin\Release\net472\Sinmai-Alpha.dll");custom=asm.GetType("SinmaiAlpha.Notes.CustomNoteTypes");
+ Assembly.LoadFrom(@"C:\项目\Alpha060-GitPublish-20261014\Sinmai-Alpha\RuntimeDependencies\System.Numerics.dll");asm=Assembly.LoadFrom(@"C:\项目\Alpha060-GitPublish-20261014\Sinmai-Alpha\bin\Release\net472\Sinmai-Alpha.dll");custom=asm.GetType("SinmaiAlpha.Notes.CustomNoteTypes");
  var tex=new Texture2D(1024,1024,TextureFormat.RGBA32,false);var pixels=Enumerable.Repeat(new Color32(230,190,30,255),1024*1024).ToArray();tex.SetPixels32(pixels);tex.Apply(false,true);
  var sprite=Sprite.Create(tex,new Rect(0,0,1024,1024),new Vector2(.5f,.5f),100,0,SpriteMeshType.FullRect);sprite.name="representative each-guide fixture";
  var line=new GameObject("each line").AddComponent<SpriteRenderer>();line.sprite=sprite;line.color=new Color(1,1,1,.8f);line.flipX=true;
@@ -43,6 +43,7 @@ public class TintProbe:MelonMod {
  Call("ApplyVisualPart",part,value,Activator.CreateInstance(vt));var output=line.GetComponentsInChildren<SpriteRenderer>().Single(x=>x!=line);Check(output.sprite==cached,"each overlay uses warmed sprite");Check(output.sharedMaterial==material,"native arc material preserved");Check(output.flipX,"arc direction preserved");Check(output.transform.localScale==Vector3.one,"connecting geometry not resized");Check(Math.Abs(output.color.a-.4f)<.001f,"native and authored opacity preserved");
  Call("WarmHintTints",ctrl,reader);Check(cache.Count==2,"repeated warmup keeps cache bounded");Call("ClearVisualTintCache");Check(cache.Count==0,"chart cleanup clears tint cache");
  Call("WarmHintTints",ctrl,new NotesReader());Check(cache.Count==0,"ordinary chart without tint creates no textures");
+ Set(ctrl,"_guideObjectList",new List<NoteGuide>());Check(!(bool)Call("WarmHintTints",ctrl,reader),"missing pool requests warmup retry");Set(ctrl,"_guideObjectList",new List<NoteGuide>{guide});Check((bool)Call("WarmHintTints",ctrl,reader),"ready pool completes retry");
+
  }
 }
-

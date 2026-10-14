@@ -54,6 +54,7 @@ public partial class CustomNoteTypes
         var key = (source, rgb, keyColor);
         if (VisualTintSprites.TryGetValue(key, out var cached)) return cached;
         if (VisualTintFailures.Contains(source)) return source;
+        var bakeStarted = Hosting.GameplayDiagnostics.Enabled ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
         try
         {
             if (!VisualSourceTextures.TryGetValue(source, out var original))
@@ -64,10 +65,17 @@ public partial class CustomNoteTypes
             Color.RGBToHSV(target, out var targetHue, out var targetSat, out var targetValue);
             var pixels = new Color32[original.Pixels.Length];
             var vertexRgb = (Color)keyColor;
+            // Alpha does not affect the RGB transform. Reuse the transformed RGB
+            // across antialiased pixels; bound the palette for photographic skins.
+            var palette = new Dictionary<int, Color32>();
             for (var i = 0; i < pixels.Length; i++)
             {
                 var input = (Color)original.Pixels[i];
                 if (input.a < .01f) { pixels[i] = new Color(0, 0, 0, input.a); continue; }
+                var originalPixel = original.Pixels[i];
+                var pixelKey = originalPixel.r << 16 | originalPixel.g << 8 | originalPixel.b;
+                if (palette.TryGetValue(pixelKey, out var reused))
+                { reused.a = originalPixel.a; pixels[i] = reused; continue; }
                 input.r *= vertexRgb.r; input.g *= vertexRgb.g; input.b *= vertexRgb.b;
                 Color.RGBToHSV(input, out _, out var sourceSat, out var sourceValue);
                 var darkGuard = VisualSmooth(.04f, .16f, sourceValue);
@@ -81,6 +89,7 @@ public partial class CustomNoteTypes
                 var achromatic = Color.Lerp(input, new Color(gray, gray, gray, input.a), darkGuard);
                 var output = Color.Lerp(chroma, achromatic, 1 - VisualSmooth(.05f, .20f, targetSat));
                 output.a = input.a; pixels[i] = output;
+                if (palette.Count < 4096) palette[pixelKey] = pixels[i];
             }
             var texture = new Texture2D(original.Width, original.Height, TextureFormat.RGBA32, false)
                 { name = "AquaMai Note Tint", filterMode = source.texture.filterMode, wrapMode = TextureWrapMode.Clamp };
@@ -91,7 +100,9 @@ public partial class CustomNoteTypes
             CopyVisualSpriteGeometry(sprite, source);
             texture.Apply(false, true);
             sprite.name = source.name + " AquaMai " + rgb.ToString("X6");
-            VisualTintSprites.Add(key, sprite); return sprite;
+            VisualTintSprites.Add(key, sprite);
+            if (bakeStarted != 0) Hosting.GameplayDiagnostics.TintBake(source.name, rgb, original.Width, original.Height, bakeStarted);
+            return sprite;
         }
         catch (Exception e)
         {
@@ -126,6 +137,34 @@ public partial class CustomNoteTypes
             readable.ReadPixels(rect, 0, 0, false); readable.Apply(); crop = readable.GetPixels32();
         }
         finally { RenderTexture.active = previous; RenderTexture.ReleaseTemporary(buffer); Object.Destroy(readable); }
+        // Full rectangles need no per-pixel triangle/UV reconstruction. Keep the
+        // geometry path for tight/rotated/trimmed atlas sprites.
+        if (vertices.Length == 4 && triangles.Length == 6 && width == cropWidth && height == cropHeight)
+        {
+            var corners = 0;
+            for (var i = 0; i < 4; i++)
+            {
+                var point = vertices[i] * sprite.pixelsPerUnit + sprite.pivot;
+                var rightSide = Mathf.Abs(point.x - width) < .01f;
+                var topSide = Mathf.Abs(point.y - height) < .01f;
+                if ((!rightSide && Mathf.Abs(point.x) >= .01f) || (!topSide && Mathf.Abs(point.y) >= .01f) ||
+                    Mathf.Abs(uvs[i].x * sprite.texture.width - left - point.x) >= .01f ||
+                    Mathf.Abs(uvs[i].y * sprite.texture.height - bottom - point.y) >= .01f) { corners = 0; break; }
+                corners |= 1 << ((rightSide ? 1 : 0) + (topSide ? 2 : 0));
+            }
+            if (corners == 15)
+            {
+                var first = (1 << triangles[0]) | (1 << triangles[1]) | (1 << triangles[2]);
+                var second = (1 << triangles[3]) | (1 << triangles[4]) | (1 << triangles[5]);
+                var shared = first & second;
+                var sharedPoints = new List<Vector2>(2);
+                for (var i = 0; i < 4; i++) if ((shared & (1 << i)) != 0) sharedPoints.Add(vertices[i] * sprite.pixelsPerUnit);
+                if ((first | second) == 15 && sharedPoints.Count == 2 &&
+                    Mathf.Abs(Mathf.Abs(sharedPoints[0].x - sharedPoints[1].x) - width) < .01f &&
+                    Mathf.Abs(Mathf.Abs(sharedPoints[0].y - sharedPoints[1].y) - height) < .01f)
+                    return new VisualTexture { Width = width, Height = height, Pixels = crop };
+            }
+        }
         var result = new VisualTexture { Width = width, Height = height, Pixels = new Color32[width * height] };
         for (var triangle = 0; triangle < triangles.Length; triangle += 3)
         {
