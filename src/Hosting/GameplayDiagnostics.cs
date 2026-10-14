@@ -16,7 +16,7 @@ namespace SinmaiAlpha.Hosting;
 
 // Opt-in, bounded diagnostics. Never swallow the gameplay exception and never
 // read Unity objects from the threaded log callback.
-public static class GameplayDiagnostics
+public static partial class GameplayDiagnostics
 {
     internal static bool Enabled
     {
@@ -33,7 +33,7 @@ public static class GameplayDiagnostics
     private static readonly HashSet<string> Seen = new();
     private static readonly Dictionary<GameCtrl, double> NextSample = new();
     private static readonly Stopwatch Clock = Stopwatch.StartNew();
-    private static StreamWriter writer;
+    private static DiagnosticLog writer;
     private static int errorCount;
     private static bool inGame;
 
@@ -44,12 +44,16 @@ public static class GameplayDiagnostics
             var directory = Path.Combine(AssetFiles.Root, "Diagnostics");
             Directory.CreateDirectory(directory);
             var path = Path.Combine(directory, "gameplay-" + DateTime.Now.ToString("yyyyMMdd-HHmmss-fff") + ".log");
-            writer = new StreamWriter(new FileStream(path, FileMode.CreateNew, FileAccess.Write, FileShare.ReadWrite), new UTF8Encoding(false)) { AutoFlush = true };
+            writer = new DiagnosticLog(path);
             Application.logMessageReceivedThreaded += UnityLog;
             AppDomain.CurrentDomain.UnhandledException += (_, e) => Write("UNHANDLED terminating=" + e.IsTerminating + " " + e.ExceptionObject);
-            AppDomain.CurrentDomain.ProcessExit += (_, __) => Write("PROCESS EXIT");
+            AppDomain.CurrentDomain.ProcessExit += (_, __) => Stop();
             Write("START build=" + typeof(GameplayDiagnostics).Assembly.ManifestModule.ModuleVersionId +
                 " unity=" + Application.unityVersion + " gpu=" + SystemInfo.graphicsDeviceName + " api=" + SystemInfo.graphicsDeviceType +
+                " cpu=" + SystemInfo.processorType + " cores=" + SystemInfo.processorCount + " ramMB=" + SystemInfo.systemMemorySize +
+                " gpuMB=" + SystemInfo.graphicsMemorySize + " resolution=" + Screen.width + "x" + Screen.height +
+                " targetFps=" + Application.targetFrameRate + " vsync=" + QualitySettings.vSyncCount +
+                " version=" + typeof(GameplayDiagnostics).Assembly.GetName().Version +
                 " chartFeatures=" + Settings.Current.ChartFeatures + " extraPool=" + Settings.Current.ExtraPoolCount +
                 " singlePlayer=" + Settings.Current.SinglePlayer + " hideSubMonitor=" + Settings.Current.HideSubMonitor);
             MelonLoader.MelonLogger.Msg("[Gameplay Diagnostics] " + path);
@@ -58,7 +62,7 @@ public static class GameplayDiagnostics
     }
     private static void Write(string text)
     {
-        try { lock (Sync) writer?.WriteLine(DateTime.Now.ToString("O") + " " + text); }
+        try { lock (Sync) writer?.Enqueue(DateTime.Now.ToString("O") + " " + text); }
         catch { /* A disk/logging failure must not stop gameplay. */ }
     }
     private static void Error(string origin, string detail)
@@ -91,7 +95,7 @@ public static class GameplayDiagnostics
             using var process = System.Diagnostics.Process.GetCurrentProcess();
             Write("SAMPLE player=" + monitor + " chartMsec=" + NotesManager.GetCurrentMsec().ToString("F0") +
                 " music=" + GameManager.SelectMusicID[monitor] + " difficulty=" + GameManager.SelectDifficultyID[monitor] +
-                " alpha=" + Notes.CustomNoteTypes.FeaturesForMonitor(monitor) + " notes=" + reader?.GetNoteList()?.Count +
+                " autoPlay=" + GameManager.IsAutoPlay() + " alpha=" + Notes.CustomNoteTypes.FeaturesForMonitor(monitor) + " notes=" + reader?.GetNoteList()?.Count +
                 " activeNotes=" + Count(owner, "_activeNoteList") + " activeSlides=" + Count(owner, "_activeSlideList") +
                 " managedMB=" + (GC.GetTotalMemory(false) / 1048576) + " privateMB=" + (process.PrivateMemorySize64 / 1048576) +
                 " workingMB=" + (process.WorkingSet64 / 1048576) +
@@ -105,7 +109,7 @@ public static class GameplayDiagnostics
         [HarmonyPrefix, HarmonyPriority(Priority.First + 300)]
         public static void Prefix()
         {
-            inGame = true; NextSample.Clear();
+            inGame = true; NextSample.Clear(); ResetPerformance();
             lock (Sync) { Seen.Clear(); errorCount = 0; }
             Write("GAME START");
             try
@@ -127,7 +131,7 @@ public static class GameplayDiagnostics
         [HarmonyFinalizer] public static void Finalizer(Exception __exception)
         {
             if (__exception != null) Error("GameProcess.OnRelease", __exception.ToString());
-            Write("GAME RELEASE end"); inGame = false; NextSample.Clear();
+            ReportPerformance("GAME END"); Write("GAME RELEASE end"); inGame = false; NextSample.Clear();
         }
     }
     [HarmonyPatch(typeof(GameCtrl), "UpdateCtrl")]

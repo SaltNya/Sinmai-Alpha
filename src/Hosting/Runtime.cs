@@ -10,7 +10,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.5-alpha060-fix5-spawn", "SaltNya")]
+[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.5-alpha060-fix6-diagnostics", "SaltNya")]
 [assembly: MelonGame("sega-interactive", "Sinmai")]
 [assembly: MelonPriority(-10000)]
 [assembly: HarmonyDontPatchAll]
@@ -45,6 +45,7 @@ namespace SinmaiAlpha
                 throw;
             }
         }
+        public override void OnDeinitializeMelon() => Hosting.GameplayDiagnostics.Stop();
         private void Apply(Type type, ref int count)
         {
             Lifecycle(type, "OnBeforePatch");
@@ -97,7 +98,7 @@ namespace SinmaiAlpha.Hosting
         [DataMember] public bool GameplayDiagnostics = false;
         public static Settings Current { get; private set; } = new Settings();
         [OnDeserializing] private void Defaults(StreamingContext context)
-        { ChartFeatures = ExtraDifficulty = ShowMineHitFeedback = true; MineVolume = .7f; ExtraPoolCount = 128; }
+        { ChartFeatures = ExtraDifficulty = ShowMineHitFeedback = true; MineVolume = .7f; ExtraPoolCount = 128; ShowSssJudgePath = GameplayDiagnostics = false; }
         public static void Load()
         {
             var path = Path.Combine(AssetFiles.Root, "config.json");

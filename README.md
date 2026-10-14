@@ -93,3 +93,22 @@ AllowTapInHold=true
 - [MajdataViewAlpha](https://github.com/Jian04/MajdataViewAlpha)：Alpha 制谱器。
 - [MuConvert](https://github.com/MuNET-OSS/MuConvert)：转谱器。
 - [AquaMai](https://github.com/MuNET-OSS/AquaMai)：模组框架及相关实现。
+
+
+### 性能问题报告（默认关闭）
+
+`Sinmai-Alpha/config.json` 默认 `ShowSssJudgePath: false`、`GameplayDiagnostics: false`。
+需要排查时将 `GameplayDiagnostics` 改为 `true`，重启游戏，复现卡顿后正常退出。
+报告保存在 `Package/Sinmai-Alpha/Diagnostics/gameplay-日期时间.log`。
+将本次日志连同歌曲名称、是否自动播放、是否录屏、卡顿附近的视频或描述发给维护者；不自动上传。
+完成后将开关改回 `false` 并重启。旧配置中的显式值会保留，缺少字段时使用默认值。
+
+报告包含硬件、显示设置、歌曲编号与难度、自动播放状态、谱面毫秒时间、内存、GC、异常及补丁归属。
+每五秒记录累计帧间隔/更新耗时统计（平均、最大、p95/p99、超25/50/100毫秒次数）；结束时记录累计汇总。
+超过25毫秒的卡顿每秒最多一条，累计计数不丢帧。分段包括音符更新/激活、屏幕特效、噪域更新/合成。
+`EFFECTS` 列出当前演出特效名称、数值及命令参数，NZONE 生效/预警区域数量、COLORV/SIZEV/ALPHAV 状态、JLINE 及最近媒体指令。
+零值特效保留最近两秒的事件信息；不是完整谱面副本。视觉流输出最多128项，超过时会标明截断。
+
+分段为包含内部调用的 CPU 墙钟耗时，不能相加或当成 GPU 耗时。帧间隔还包含渲染、限帧、输入和等待；报告提供线索，不自动断言某特效就是根因。
+分位数使用1毫秒桶估算，1001代表超过1000毫秒。后台写入队列上限256条，满时丢弃并记录数量，单次文件上限32 MiB；旧报告需要手动清理。
+开启诊断会有额外开销，最终帧率需关闭诊断后复测；未完成玩家机台整曲验证。

@@ -1,0 +1,5 @@
+using System;using System.IO;using System.Threading.Tasks;using SinmaiAlpha.Hosting;
+class Program { static void Check(bool b,string s){if(!b)throw new Exception(s);}static void Main(){
+var x=new FrameStatistics();for(int i=0;i<99;i++)x.Add(16);x.Add(500);Check(x.Count==100&&x.Over25==1&&x.Max==500,"spike counts");Check(x.Percentile(.95)==16&&x.Percentile(.99)==16,"percentiles");x.Add(double.NaN);x.Add(double.PositiveInfinity);x.Add(-1);Check(x.Count==100,"invalid samples");x.Clear();Check(x.Count==0&&x.Percentile(.95)==0,"reset");x.Add(1500);Check(x.Percentile(.95)==1001,"overflow bin");
+string p=Path.Combine(Path.GetTempPath(),Guid.NewGuid()+".log");using(var log=new DiagnosticLog(p)){log.Enqueue("START");Parallel.For(0,10000,i=>log.Enqueue("sample="+i));}var text=File.ReadAllText(p);Check(text.Contains("START")&&text.Contains("sample="),"writer drain");File.Delete(p);
+Console.WriteLine("PASS: percentiles, long-frame counts, invalid input, reset, histogram overflow, concurrent bounded writer and shutdown drain.");}}
