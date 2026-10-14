@@ -1,0 +1,104 @@
+PASS
+BENCH noise mixed CPU submit mean=2.224 max=16.791
+BENCH noise active-only CPU submit mean=1.853 max=2.486
+PASS Active mask resolution doubled per axis at 720p
+PASS Full resolution warning isolation mask populated
+protected warning pixels=11849 changed=0
+PASS Warning destination retains exact original pixels
+PASS Other player's pixels unchanged
+warning source leaked pixels outside 3px boundary=0
+PASS Displaced active scene does not drag warning material out of its boundary
+PASS Noise lifecycle renders correctly at 1500ms
+PASS Warning mask clears or returns on time seek 1500ms
+PASS Noise lifecycle renders correctly at 500ms
+PASS Warning mask clears or returns on time seek 500ms
+PASS Noise lifecycle renders correctly at 4500ms
+PASS Noise lifecycle renders correctly at 500ms
+PASS Warning mask clears or returns on time seek 500ms
+PASS Warning cache invalidates geometry change 0
+PASS Cached and forced render identical for geometry change 0
+PASS Warning cache invalidates geometry change 1
+PASS Cached and forced render identical for geometry change 1
+PASS Warning cache invalidates geometry change 2
+PASS Cached and forced render identical for geometry change 2
+PASS Fine noise visibly differs from coarse legacy noise
+PASS Same-time repeated render has no stale material state
+PASS Decode NZ2 color/alpha control
+PASS NZ2 uses supported fine-noise shader
+PASS Decode NZ2 color/alpha control
+PASS NZ2 uses supported fine-noise shader
+PASS Decode NZ2 color/alpha control
+PASS NZ2 uses supported fine-noise shader
+PASS NZ2 color still changes noise pixels
+PASS NZ2 alpha zero restores original scene
+PASS Warning mask reallocates even within same coarse mask size
+PASS Dispose releases warning isolation resources
+PASS Summary prefix binds to native PhotoEditProcess.SetData
+PASS Unbound summary cannot borrow last song
+PASS Own song and difficulty on reused summary P1 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 2
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 2
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 3
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 3
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 2
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 2
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 3
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 3
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Invalid track clears pooled summary ownership
+PASS Missing score cannot retain previous theme or level identity
+PASS Utage exclusion follows historical chart
+DEVICE NVIDIA GeForce RTX 4070 Ti; Intel(R) Core(TM) i5-14600KF; 720x720 per player; readback synchronized
+BENCH screen gaussian load=3.535 first=3.742 synchronized mean=0.142 max=0.343
+BENCH screen neon load=2.048 first=1.189 synchronized mean=0.101 max=0.287
+BENCH screen trail load=1.782 first=1.793 synchronized mean=0.111 max=0.290
+BENCH screen glitch load=2.285 first=0.996 synchronized mean=0.165 max=0.268
+BENCH screen tvnoise load=2.222 first=0.712 synchronized mean=0.115 max=0.392
+BENCH screen rainbow load=1.696 first=0.686 synchronized mean=0.118 max=0.645
+BENCH screen vignette load=1.867 first=0.250 synchronized mean=0.081 max=0.100
+BENCH screen kaleidoscope load=1.910 first=0.630 synchronized mean=0.106 max=0.270
+BENCH screen bloom load=1.745 first=0.336 synchronized mean=0.155 max=0.558
+BENCH screen shatter load=1.704 first=0.613 synchronized mean=0.353 max=0.490
+BENCH screen ripple load=2.068 first=0.289 synchronized mean=0.127 max=0.292
+BENCH screen pixelate load=2.032 first=0.634 synchronized mean=0.164 max=0.442
+BENCH screen split load=2.082 first=0.275 synchronized mean=0.113 max=0.392
+BENCH screen invert load=1.688 first=0.302 synchronized mean=0.143 max=0.432
+BENCH screen hue load=1.697 first=0.720 synchronized mean=0.091 max=0.187
+BENCH screen flash load=1.643 first=1.213 synchronized mean=0.087 max=0.230
+BENCH screen brightness load=1.674 first=0.903 synchronized mean=0.135 max=0.274
+BENCH screen contrast load=1.723 first=0.339 synchronized mean=0.134 max=0.597
+BENCH screen saturation load=2.203 first=0.638 synchronized mean=0.198 max=0.621
+BENCH screen shake load=2.687 first=0.956 synchronized mean=0.119 max=0.330
+BENCH screen mixed load=2.218 first=0.854 synchronized mean=0.341 max=0.675

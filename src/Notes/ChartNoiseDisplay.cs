@@ -1,4 +1,4 @@
-// Display geometry and compositing sequence adapted from the supplied
+﻿// Display geometry and compositing sequence adapted from the supplied
 // MajdataPlayAlpha compiled reference, GPL-3.0; see the frozen reference and
 // NoiseZoneSources.md. This file has no input, judgment or score implementation.
 using System;
@@ -70,6 +70,7 @@ public partial class CustomNoteTypes
 
         private const float Radius = 4.8f;
 
+        internal int GeometryVersion { get; private set; }
         internal bool HasActive => Enumerable.Any(visible, (bool value) => value);
 
         internal double Time => Clock?.Invoke() ?? 0.0;
@@ -94,6 +95,7 @@ public partial class CustomNoteTypes
             if (warningShader == null || !warningShader.isSupported) throw new ArgumentException("Native noise warning shader is unavailable");
             Clear();
             Clock = clock;
+            GeometryVersion++;
             visualEvents = events.ToArray();
             timeline.Configure(visualEvents);
             centers = fieldCenters.ToArray();
@@ -259,6 +261,19 @@ public partial class CustomNoteTypes
 	}
 
         // Keep warning geometry out of the active field's displaced scene sampling.
+        internal ulong WarningMaskState(Vector2[] sizes, out bool sizeChanged)
+        {
+            ulong bits = 0; sizeChanged = false;
+            for (int i = 0; i < warningZones.Length; i++)
+                if (warningZones[i] && styles[i].Color.a > 0)
+                {
+                    bits |= 1UL << i;
+                    if (!sizes[i].Equals(styles[i].Size)) sizeChanged = true;
+                    sizes[i] = styles[i].Size;
+                }
+            return bits;
+        }
+
         internal void FillWarningMask(Camera camera, Matrix4x4 field, int width, int height, byte[] pixels, PresentationRect viewport)
         {
             Array.Clear(pixels, 0, pixels.Length);
@@ -431,6 +446,13 @@ public partial class CustomNoteTypes
         private Texture2D warningMask;
         private byte[] warningBytes;
         private byte[] warningScratch;
+        private bool warningValid;
+        private NoiseZoneDisplay warningOwner;
+        private ulong warningBits;
+        private int warningGeometry;
+        private readonly Vector2[] warningSizes = new Vector2[33];
+        private Matrix4x4 warningField, warningView, warningProjection;
+        private PresentationRect warningViewport;
         private Texture2D sourceStyles;
         private Color32[] stylePixels;
         private int[] styleQueue, styleDistance;
@@ -471,9 +493,21 @@ public partial class CustomNoteTypes
             }
             Ensure(outputWidth, outputHeight);
             owner.FillActiveMask(camera, field, width, height, maskBytes, viewport, stylePixels);
-            owner.FillWarningMask(camera, field, outputWidth, outputHeight, warningBytes, viewport);
-            ProtectWarningBorder(outputWidth, outputHeight);
-            warningMask.LoadRawTextureData(warningBytes); warningMask.Apply(false);
+            // Warning protection covers complete cells, independent of warning progress.
+            // Rebuild only when coverage, size, projection or output geometry changes.
+            var bits = owner.WarningMaskState(warningSizes, out var sizeChanged);
+            var view = camera.worldToCameraMatrix; var projection = camera.projectionMatrix;
+            if (!warningValid || warningOwner != owner || warningGeometry != owner.GeometryVersion ||
+                warningBits != bits || sizeChanged || !warningField.Equals(field) ||
+                !warningView.Equals(view) || !warningProjection.Equals(projection) || !warningViewport.Equals(viewport))
+            {
+                owner.FillWarningMask(camera, field, outputWidth, outputHeight, warningBytes, viewport);
+                if (bits != 0) ProtectWarningBorder(outputWidth, outputHeight);
+                warningMask.LoadRawTextureData(warningBytes); warningMask.Apply(false);
+                warningOwner = owner; warningGeometry = owner.GeometryVersion; warningBits = bits;
+                warningField = field; warningView = view; warningProjection = projection; warningViewport = viewport;
+                warningValid = true;
+            }
             material.SetTexture("_Warnings", warningMask);
             SpreadStyles();
             sourceStyles.SetPixels32(stylePixels); sourceStyles.Apply(false);
@@ -600,6 +634,7 @@ public partial class CustomNoteTypes
 
         private void ReleaseMasks()
         {
+            warningValid = false; warningOwner = null;
             RenderTexture[] array = new RenderTexture[3] { compose, ping, pong };
             foreach (RenderTexture renderTexture in array)
             {

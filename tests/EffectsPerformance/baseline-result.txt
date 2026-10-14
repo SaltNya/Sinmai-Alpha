@@ -1,0 +1,90 @@
+PASS
+BENCH noise mixed CPU submit mean=4.028 max=18.447
+BENCH noise active-only CPU submit mean=2.585 max=3.550
+PASS Active mask resolution doubled per axis at 720p
+PASS Full resolution warning isolation mask populated
+protected warning pixels=11849 changed=0
+PASS Warning destination retains exact original pixels
+PASS Other player's pixels unchanged
+warning source leaked pixels outside 3px boundary=0
+PASS Displaced active scene does not drag warning material out of its boundary
+PASS Noise lifecycle renders correctly at 1500ms
+PASS Warning mask clears or returns on time seek 1500ms
+PASS Noise lifecycle renders correctly at 500ms
+PASS Warning mask clears or returns on time seek 500ms
+PASS Noise lifecycle renders correctly at 4500ms
+PASS Noise lifecycle renders correctly at 500ms
+PASS Warning mask clears or returns on time seek 500ms
+PASS Fine noise visibly differs from coarse legacy noise
+PASS Same-time repeated render has no stale material state
+PASS Decode NZ2 color/alpha control
+PASS NZ2 uses supported fine-noise shader
+PASS Decode NZ2 color/alpha control
+PASS NZ2 uses supported fine-noise shader
+PASS Decode NZ2 color/alpha control
+PASS NZ2 uses supported fine-noise shader
+PASS NZ2 color still changes noise pixels
+PASS NZ2 alpha zero restores original scene
+PASS Warning mask reallocates even within same coarse mask size
+PASS Dispose releases warning isolation resources
+PASS Summary prefix binds to native PhotoEditProcess.SetData
+PASS Unbound summary cannot borrow last song
+PASS Own song and difficulty on reused summary P1 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 2
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 2
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 3
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 3
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 2
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 2
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 3
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 3
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P1 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Own song and difficulty on reused summary P2 track 1
+PASS Rival data cannot overwrite own summary
+PASS Result plate resolves theme artwork
+PASS Invalid track clears pooled summary ownership
+PASS Missing score cannot retain previous theme or level identity
+PASS Utage exclusion follows historical chart
+BENCH screen gaussian load=7.120 first=56.894 synchronized mean=0.130 max=0.533
+BENCH screen neon load=1.715 first=54.661 synchronized mean=0.109 max=0.253
+BENCH screen trail load=1.647 first=55.048 synchronized mean=0.112 max=0.356
+BENCH screen glitch load=1.685 first=53.654 synchronized mean=0.168 max=0.705
+BENCH screen tvnoise load=1.901 first=54.976 synchronized mean=0.102 max=0.210
+BENCH screen rainbow load=1.671 first=57.222 synchronized mean=0.162 max=0.539
+BENCH screen vignette load=2.045 first=56.622 synchronized mean=0.112 max=0.244
+BENCH screen kaleidoscope load=1.859 first=55.743 synchronized mean=0.126 max=0.300
+BENCH screen bloom load=1.656 first=59.487 synchronized mean=0.149 max=0.362
+BENCH screen shatter load=1.855 first=56.709 synchronized mean=0.345 max=0.697
+BENCH screen ripple load=1.720 first=57.941 synchronized mean=0.097 max=0.222
+BENCH screen pixelate load=1.832 first=54.266 synchronized mean=0.125 max=0.328
+BENCH screen split load=1.610 first=54.435 synchronized mean=0.095 max=0.201
+BENCH screen invert load=1.839 first=54.384 synchronized mean=0.121 max=0.314
