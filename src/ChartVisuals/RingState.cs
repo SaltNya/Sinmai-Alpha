@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -56,7 +56,9 @@ namespace SinmaiAlpha.ChartVisuals
                 {
                     if (!float.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var radius) ||
                         float.IsNaN(radius) || float.IsInfinity(radius) ||
-                        Math.Abs(radius) > (kind == "spawn" ? 4.8f : 20f)) return false;
+                        Math.Abs(radius) > 20f) return false;
+                    // Off-ring decorative notes may spawn beyond the 4.8 judge ring.
+                    // Use the same finite display-radius bound as DESTROY.
                     number = radius;
                 }
                 parsed.Add(new RingChange { Time = time, Kind = kind, Type = type, Value = number });

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -10,7 +10,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.5-alpha060-fix4-perf", "SaltNya")]
+[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.5-alpha060-fix5-spawn", "SaltNya")]
 [assembly: MelonGame("sega-interactive", "Sinmai")]
 [assembly: MelonPriority(-10000)]
 [assembly: HarmonyDontPatchAll]

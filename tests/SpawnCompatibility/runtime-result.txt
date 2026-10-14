@@ -1,0 +1,1 @@
+PASS stream s44 keeps 5.2; display starts at 5.2 and reaches unchanged 4.8 ring at target time.

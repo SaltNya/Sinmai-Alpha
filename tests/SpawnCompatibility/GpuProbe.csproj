@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net472</TargetFramework><LangVersion>latest</LangVersion><NuGetAudit>false</NuGetAudit><AssemblyName>Alpha060GpuProbe</AssemblyName></PropertyGroup>
+<ItemGroup>
+<Reference Include="MelonLoader"><HintPath>D:\SEGA\SDEZ1.70\Package\MelonLoader\net35\MelonLoader.dll</HintPath></Reference>
+<Reference Include="0Harmony"><HintPath>C:\项目\MaiChartManager\MaiChartManager\AquaMai\Libs\0Harmony.dll</HintPath></Reference>
+<Reference Include="UnityEngine"><HintPath>D:\SEGA\SDEZ1.70\Package\Sinmai_Data\Managed\UnityEngine.dll</HintPath></Reference>
+<Reference Include="UnityEngine.CoreModule"><HintPath>D:\SEGA\SDEZ1.70\Package\Sinmai_Data\Managed\UnityEngine.CoreModule.dll</HintPath></Reference>
+<Reference Include="UnityEngine.AssetBundleModule"><HintPath>D:\SEGA\SDEZ1.70\Package\Sinmai_Data\Managed\UnityEngine.AssetBundleModule.dll</HintPath></Reference>
+<Reference Include="UnityEngine.ImageConversionModule"><HintPath>D:\SEGA\SDEZ1.70\Package\Sinmai_Data\Managed\UnityEngine.ImageConversionModule.dll</HintPath></Reference>
+<Reference Include="UnityEngine.UIModule"><HintPath>D:\SEGA\SDEZ1.70\Package\Sinmai_Data\Managed\UnityEngine.UIModule.dll</HintPath></Reference>
+<Reference Include="UnityEngine.AnimationModule"><HintPath>D:\SEGA\SDEZ1.70\Package\Sinmai_Data\Managed\UnityEngine.AnimationModule.dll</HintPath></Reference>
+<Reference Include="Assembly-CSharp"><HintPath>D:\SEGA\SDEZ1.70\Package\Sinmai_Data\Managed\Assembly-CSharp.dll</HintPath></Reference>
+<Reference Include="UnityEngine.UI"><HintPath>D:\SEGA\SDEZ1.70\Package\Sinmai_Data\Managed\UnityEngine.UI.dll</HintPath></Reference>
+</ItemGroup></Project>
