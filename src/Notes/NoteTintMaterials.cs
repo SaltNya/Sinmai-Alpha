@@ -1,4 +1,7 @@
 ﻿using System.Collections.Generic;
+using HarmonyLib;
+using Manager;
+using Monitor;
 using SinmaiAlpha.ChartVisuals;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -21,6 +24,7 @@ public partial class CustomNoteTypes
             if (!__result || !FeaturesEnabled(__instance)) return;
             var reader = Manager.NotesManager.Instance(__instance.MonitorIndex)?.getReader();
             if (reader == null || !TintWarmedReaders.Add(reader)) return;
+            WarmHintTints(__instance, reader);
             var sprite = Process.GameNoteImageContainer.NormalTap[0];
             if (sprite == null) { TintWarmedReaders.Remove(reader); return; }
             var obj = new GameObject("Sinmai-Alpha tint warmup");
@@ -31,6 +35,35 @@ public partial class CustomNoteTypes
                     render.sharedMaterial.SetPass(0);
             }
             finally { NoteTintBlocks.Remove(render); Object.Destroy(obj); }
+        }
+    }
+    // Each-guide sprites keep the native arc material, so they cannot use the
+    // ordinary note tint shader. Bake their finite chart colors during loading,
+    // before the gameplay clock starts, rather than on the first COLORV frame.
+    private static void WarmHintTints(Monitor.Game.GameCtrl controller, NotesReader reader)
+    {
+        var colors = new HashSet<int>();
+        if (VisualTimelines.TryGetValue(reader, out var timeline))
+            foreach (var changes in timeline.Streams.Values)
+                foreach (var change in changes)
+                    if (change.Type != "blockarea" && change.Type != "slidestar" && change.Value?.Color is int rgb)
+                        colors.Add(rgb);
+        foreach (var note in reader.GetNoteList())
+            if (VisualNotes.TryGetValue(note, out var payload) && payload.Note.Base.Color is int rgb)
+                colors.Add(rgb);
+        if (colors.Count == 0) return;
+        var guides = Traverse.Create(controller).Field("_guideObjectList").GetValue<List<NoteGuide>>();
+        if (guides == null) return;
+        var seen = new HashSet<(Sprite, Color32)>();
+        foreach (var guide in guides)
+        {
+            if (guide == null) continue;
+            var render = Traverse.Create(guide).Field("_spriteEachRender").GetValue<SpriteRenderer>();
+            if (render == null || render.sprite == null) continue;
+            var vertex = render.color;
+            Color32 key = new Color(vertex.r, vertex.g, vertex.b, 1);
+            if (!seen.Add((render.sprite, key))) continue;
+            foreach (var rgb in colors) GetVisualTintSprite(render.sprite, rgb, vertex);
         }
     }
     private static bool ApplyNoteTintMaterial(SpriteRenderer render, Sprite source, Color vertex,

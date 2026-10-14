@@ -1,0 +1,14 @@
+PASS
+cold first-color ms=411.472
+two colors warmup during loading ms=691.601
+PASS deduplicate duplicate guides and chart colors
+first gameplay color after warmup ms=0.129
+PASS COLORV reuses prebuilt sprite without extra texture
+PASS each overlay uses warmed sprite
+PASS native arc material preserved
+PASS arc direction preserved
+PASS connecting geometry not resized
+PASS native and authored opacity preserved
+PASS repeated warmup keeps cache bounded
+PASS chart cleanup clears tint cache
+PASS ordinary chart without tint creates no textures
