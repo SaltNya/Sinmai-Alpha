@@ -10,7 +10,7 @@ using MelonLoader;
 using UnityEngine;
 using UnityEngine.UI;
 
-[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.4", "SaltNya")]
+[assembly: MelonInfo(typeof(SinmaiAlpha.Plugin), "Sinmai-Alpha", "0.1.5-alpha060-fix2", "SaltNya")]
 [assembly: MelonGame("sega-interactive", "Sinmai")]
 [assembly: MelonPriority(-10000)]
 [assembly: HarmonyDontPatchAll]
@@ -30,6 +30,7 @@ namespace SinmaiAlpha
             var roots = new List<Type> { typeof(Difficulty.AlphaRights), typeof(Difficulty.ExtraMode) };
             if (settings.ChartFeatures) roots.AddRange(new[] { typeof(Notes.CustomNoteTypes), typeof(Notes.ExtendNotesPool), typeof(Notes.ReviveFinaleVSlide), typeof(Notes.TapInHoldFix) });
             if (settings.ExtraDifficulty) roots.Add(typeof(Difficulty.ExtraDifficulty));
+            if (Hosting.GameplayDiagnostics.Enabled) { Hosting.GameplayDiagnostics.Start(); roots.Add(typeof(Hosting.GameplayDiagnostics)); }
             var count = 0;
             try
             {
@@ -92,6 +93,8 @@ namespace SinmaiAlpha.Hosting
         // hint for cabinets whose single-screen mod exposes no public setting.
         [DataMember] public bool? SinglePlayer = null;
         [DataMember] public bool HideSubMonitor = false;
+        [DataMember] public bool ShowSssJudgePath = false;
+        [DataMember] public bool GameplayDiagnostics = false;
         public static Settings Current { get; private set; } = new Settings();
         [OnDeserializing] private void Defaults(StreamingContext context)
         { ChartFeatures = ExtraDifficulty = ShowMineHitFeedback = true; MineVolume = .7f; ExtraPoolCount = 128; }

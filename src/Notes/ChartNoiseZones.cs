@@ -65,7 +65,7 @@ public partial class CustomNoteTypes
                 { MelonLogger.Warning("[Noise Zone] Invalid composition record: " + record.Text); continue; }
                 var start = new NotesTime(); start.init(record.Bar, record.Grid, __instance);
                 chart.Events.Add(new NoiseZoneEvent(spec.Sensor, start.msec / 1000d, spec.Duration,
-                    NoiseWarningLead(speed, spec.Hs)));
+                    spec.Controls == null ? NoiseWarningLead(speed, spec.Hs) : 240d / (option.GetTouchSpeed.IsValid() ? option.GetTouchSpeed.GetValue() : 850f) * 1.25, spec.Controls));
             }
             chart.Timeline.Configure(chart.Events);
             NoiseCharts.Remove(__instance); NoiseCharts.Add(__instance, chart);

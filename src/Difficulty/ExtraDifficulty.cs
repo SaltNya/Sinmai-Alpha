@@ -44,6 +44,7 @@ public static partial class ExtraDifficulty
     private static readonly ConditionalWeakTable<MusicChainCardObejct, MusicIdentity> Cards = new();
     private static readonly ConditionalWeakTable<MusicInfomationController, MusicIdentity> Information = new();
     private static readonly ConditionalWeakTable<KOP_ResultTrackData, MusicIdentity> ResultTracks = new();
+    private static readonly ConditionalWeakTable<SingleResultCardController, MusicIdentity> SummaryCards = new();
     private static readonly ConditionalWeakTable<Image, ImageLease> Images = new();
     private static readonly ConditionalWeakTable<MultipleImage, SlotLease> Slots = new();
     [ThreadStatic] private static Theme levelTheme;
@@ -293,6 +294,9 @@ public static partial class ExtraDifficulty
         var resultTrack = FindResultTrack(owner);
         if (resultTrack != null)
             return ResultTracks.TryGetValue(resultTrack, out var trackIdentity) ? trackIdentity : new MusicIdentity();
+        var summaries = owner.GetComponentsInParent<SingleResultCardController>(true);
+        if (summaries.Length != 0)
+            return SummaryCards.TryGetValue(summaries[0], out var summaryIdentity) ? summaryIdentity : new MusicIdentity();
         var monitor = owner.GetComponentsInParent<MonitorBase>(true).FirstOrDefault();
         var card = owner.GetComponentsInParent<MusicChainCardObejct>(true).FirstOrDefault();
         if (card != null) return Cards.TryGetValue(card, out var identity) ? identity : new MusicIdentity();
@@ -363,7 +367,7 @@ public static partial class ExtraDifficulty
             // animation callback runs after that write and before UI rendering.
             // Keep the original clip and its layout/color/timing tracks intact.
             if (!(__instance is Image image) || (image.GetComponentInParent<ResultMonitor>() == null &&
-                FindResultTrack(image) == null)) return;
+                FindResultTrack(image) == null && image.GetComponentsInParent<SingleResultCardController>(true).Length == 0)) return;
             var identity = Identity(image);
             var theme = ThemeFor(identity, identity.Difficulty);
             if (image is MultipleImage multiple)
@@ -425,6 +429,36 @@ public static partial class ExtraDifficulty
                 }
             }
             ResultTracks.Remove(__instance); ResultTracks.Add(__instance, identity);
+        }
+    }
+    [HarmonyPatch(typeof(PhotoEditProcess), "SetData")]
+    public static class SummaryDataPatch
+    {
+        // This is the ordinary three-track summary, separate from KOP history.
+        // Native SetData indexes [player, track], then fills monitorIndex. Only
+        // isMyself updates its SingleResultCard; the other call fills a rival.
+        [HarmonyPrefix] public static void Prefix(int __0, int __1, int __2, bool __4,
+            PhotoEditMonitor[] ____monitors, GameScoreList[,] ____gameScoreLists)
+        {
+            if (!__4 || ____monitors == null || __0 < 0 || __0 >= ____monitors.Length) return;
+            var monitor = ____monitors[__0];
+            if (monitor == null) return;
+            foreach (var card in monitor.GetComponentsInChildren<SingleResultCardController>(true))
+            {
+                var identity = new MusicIdentity();
+                if (____gameScoreLists != null && __1 >= 0 && __1 < ____gameScoreLists.GetLength(0) &&
+                    __2 >= 0 && __2 < ____gameScoreLists.GetLength(1))
+                {
+                    var score = ____gameScoreLists[__1, __2];
+                    if (score != null)
+                    {
+                        var session = score.SessionInfo;
+                        identity.Id = session.musicId; identity.Difficulty = session.difficulty;
+                        identity.Utage = session.musicId >= 100000;
+                    }
+                }
+                SummaryCards.Remove(card); SummaryCards.Add(card, identity);
+            }
         }
     }
     [HarmonyPatch]
@@ -518,7 +552,7 @@ public static partial class ExtraDifficulty
             Context(__instance, __originalMethod, __args, out var difficulty, out var utage);
             PrepareNumbers(__instance, difficulty, utage, levelTheme);
             if (__instance is MonitorBase monitor) Scan(monitor);
-            else if (__instance is KOP_ResultTrackData) ScanImages(__instance);
+            else if (__instance is KOP_ResultTrackData || __instance is SingleResultCardController) ScanImages(__instance);
         }
         [HarmonyFinalizer] public static void Finalizer(Theme __state) => levelTheme = __state;
     }

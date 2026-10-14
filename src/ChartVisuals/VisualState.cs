@@ -63,7 +63,7 @@ namespace SinmaiAlpha.ChartVisuals
     public static class VisualState
     {
         private static readonly HashSet<string> Types = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-            { "tap", "each", "hold", "slide", "star", "slidestar", "break", "mine", "touch", "touchhold" };
+            { "tap", "each", "hold", "slide", "star", "slidestar", "break", "mine", "touch", "touchhold", "blockarea" };
         public static bool IsKind(string kind) => kind == "color" || kind == "size" || kind == "alpha" ||
             kind == "colorv" || kind == "sizev" || kind == "alphav";
 
@@ -86,6 +86,7 @@ namespace SinmaiAlpha.ChartVisuals
                 var pair = part.Split(new[] { '=' }, 2); var type = "";
                 if (typed)
                 {
+                    if (pair.Length == 2 && NoiseControls.IsTarget(pair[0].Trim())) pair[0] = "blockarea";
                     if (pair.Length != 2 || !Types.Contains(pair[0].Trim())) return false;
                     type = pair[0].Trim().ToLowerInvariant();
                 }
@@ -136,6 +137,7 @@ namespace SinmaiAlpha.ChartVisuals
             }
             IEnumerable<string> Priority(string kind)
             {
+                if (family == "blockarea") { yield return "blockarea"; yield break; }
                 if (note.Mine)
                 {
                     yield return "mine";

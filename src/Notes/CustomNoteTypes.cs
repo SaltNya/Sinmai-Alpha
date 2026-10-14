@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -88,23 +88,19 @@ public partial class CustomNoteTypes
     // 池里的对象在创建时就换好地雷贴图，和普通 Note 池互不污染。
     private static readonly Dictionary<GameCtrl, Dictionary<string, object>> MinePools = new Dictionary<GameCtrl, Dictionary<string, object>>();
 
-    // 当前 RegistNote 调用需要从地雷池取对象的字段名（每种 note 类型对应一或两个池字段）。
-    private static readonly HashSet<string> _activeMineFields = new HashSet<string>();
+    // Registration routing is scoped to the controller call in PoolRouting.
 
     // 绝赞 touch（BRTTP，kind=TouchBreak）的独立池与当前激活字段。
     // 绝赞不是地雷，但同样需要独立池（组件是 TouchBreakNoteB，贴图/判定由类自己负责）。
     private static readonly Dictionary<GameCtrl, Dictionary<string, object>> TouchBreakPools = new Dictionary<GameCtrl, Dictionary<string, object>>();
-    private static readonly HashSet<string> _activeTouchBreakFields = new HashSet<string>();
 
     // TouchStar（NMSTP/BRSTP，kind=TouchStar/TouchBreakStar）的独立池与当前激活字段。
     // 逻辑与 touch 完全一致，仅贴图不同（touch_star 五瓣 / touch_star_break / touch_hit_star）。
     private static readonly Dictionary<GameCtrl, Dictionary<string, object>> TouchStarPools = new Dictionary<GameCtrl, Dictionary<string, object>>();
-    private static readonly HashSet<string> _activeTouchStarFields = new HashSet<string>();
 
     // 地雷 TouchStar（MNSTP，kind=MineTouchStar）的独立池与当前激活字段。
     // 五瓣星结构同 TouchStar，贴图 touch_star_mine；判定同地雷 touch（命中反转）。
     private static readonly Dictionary<GameCtrl, Dictionary<string, object>> MineTouchStarPools = new Dictionary<GameCtrl, Dictionary<string, object>>();
-    private static readonly HashSet<string> _activeMineTouchStarFields = new HashSet<string>();
 
     // RegistNote 中每种 note 类型会读取的池字段。
     private static readonly string[] MinePoolFieldNames =

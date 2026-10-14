@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -50,10 +50,7 @@ public partial class CustomNoteTypes
         TouchBreakPools.Clear();
         TouchStarPools.Clear();
         MineTouchStarPools.Clear();
-        _activeMineFields.Clear();
-        _activeTouchBreakFields.Clear();
-        _activeTouchStarFields.Clear();
-        _activeMineTouchStarFields.Clear();
+        PoolRoutes.Clear();
         HandledInitializations.Clear();
         RestoreAllMineGuideSprites();
         MineBreakSlides.Clear();
@@ -101,10 +98,7 @@ public partial class CustomNoteTypes
         TouchBreakPools.Clear();
         TouchStarPools.Clear();
         MineTouchStarPools.Clear();
-        _activeMineFields.Clear();
-        _activeTouchBreakFields.Clear();
-        _activeTouchStarFields.Clear();
-        _activeMineTouchStarFields.Clear();
+        PoolRoutes.Clear();
         HandledInitializations.Clear();
         RestoreAllMineGuideSprites();
         MineBreakSlides.Clear();

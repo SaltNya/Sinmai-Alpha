@@ -271,9 +271,11 @@ public readonly struct NoiseZoneEvent
 	public readonly double End;
 
 	public readonly double WarningStart;
+    public readonly NoiseControls Controls;
+    public readonly double NativeLead;
 
-    public NoiseZoneEvent(int sensor, double start, double duration, double lead)
-    { Sensor = sensor; Start = start; End = start + Math.Max(1.0 / 60.0, duration); WarningStart = start - Math.Max(0.001, lead); }
+    public NoiseZoneEvent(int sensor, double start, double duration, double lead, NoiseControls controls = null)
+    { Sensor = sensor; Start = start; End = start + Math.Max(1.0 / 60.0, duration); WarningStart = start - Math.Max(0.001, lead); NativeLead = lead; Controls = controls; }
 }
 public sealed class NoiseZoneTimeline
 {

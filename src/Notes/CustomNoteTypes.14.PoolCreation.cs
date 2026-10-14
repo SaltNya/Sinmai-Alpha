@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -136,13 +136,16 @@ public partial class CustomNoteTypes
     {
         try
         {
+            // Unleased arrows must die with this player's pool, like native arrows.
+            var parent = Traverse.Create(instance).Field("_slideListParent").GetValue<GameObject>();
+            if (parent == null) throw new InvalidOperationException("Slide pool parent unavailable");
             var arrows = Traverse.Create(instance).Field("_arrowObjectList").GetValue<List<SpriteRenderer>>();
             if (arrows != null)
             {
                 var list = new List<SpriteRenderer>();
                 foreach (var unused in arrows)
                 {
-                    var sr = UnityEngine.Object.Instantiate(GameNotePrefabContainer.Arrow);
+                    var sr = UnityEngine.Object.Instantiate(GameNotePrefabContainer.Arrow, parent.transform);
                     sr.gameObject.SetActive(false);
                     ApplyMineArrowTexture(sr);
                     list.Add(sr);
@@ -157,7 +160,7 @@ public partial class CustomNoteTypes
                 var list = new List<BreakSlide>();
                 foreach (var unused in breakArrows)
                 {
-                    var bs = UnityEngine.Object.Instantiate(GameNotePrefabContainer.BreakArrow);
+                    var bs = UnityEngine.Object.Instantiate(GameNotePrefabContainer.BreakArrow, parent.transform);
                     bs.gameObject.SetActive(false);
                     ApplyMineBreakArrowTexture(bs);
                     list.Add(bs);

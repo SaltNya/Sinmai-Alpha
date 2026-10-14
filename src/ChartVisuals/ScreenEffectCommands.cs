@@ -47,7 +47,9 @@ namespace SinmaiAlpha.ChartVisuals
             if (!IsKind(kind) || string.IsNullOrEmpty(text) || !text.StartsWith("(") || !text.EndsWith(")")) return false;
             var values = text.Substring(1, text.Length - 2).Split(',');
             var move = kind == "move";
-            var result = new PresentationChange { Kind = kind };
+            var result = new PresentationChange { Kind = kind, RotatePV = false, AngleMode = kind == "kaleidoscope" };
+            if (kind == "rotate" && values.Length > 1 && bool.TryParse(values[values.Length - 1].Trim(), out var rotatePV))
+            { result.RotatePV = rotatePV; Array.Resize(ref values, values.Length - 1); }
             if (kind == "vignette" && values.Length >= 3 && bool.TryParse(values[values.Length - 1].Trim(), out var gradient))
             {
                 if (bool.TryParse(values[0].Trim(), out var on) && !on) return false;
@@ -117,7 +119,7 @@ namespace SinmaiAlpha.ChartVisuals
                 }
             }
             var extra = ExtraScreenFilters.Find(kind);
-            if (extra != null && !extra.Accepts(result.Target)) return false;
+            if (extra != null && !result.AngleMode && !extra.Accepts(result.Target)) return false;
             change = result; return true;
         }
 
@@ -128,6 +130,8 @@ namespace SinmaiAlpha.ChartVisuals
             change.Target, change.Duration, change.ParamA, change.ParamB, (float)change.ShakeMode,
             change.ShakeEnabled ? 1f : 0f, change.Attack, change.HoldTime, change.Release
             };
+            if (change.Kind == "rotate" || change.Kind == "kaleidoscope" && change.AngleMode)
+                return "EF3|" + string.Join(",", values.Concat(new[] { change.RotatePV ? 1f : 0f, change.AngleMode ? 1f : 0f }).Select(value => value.ToString("R", CultureInfo.InvariantCulture)));
             return (gradient ? "EF2|" : "EF1|") + string.Join(",", (gradient ? values.Concat(new[] {0f}) : values)
                 .Select(value => value.ToString("R", CultureInfo.InvariantCulture)));
         }
@@ -137,13 +141,16 @@ namespace SinmaiAlpha.ChartVisuals
             change = null;
             if (!IsKind(kind) || text == null) return false;
             var gradient = kind == "vignette" && text.StartsWith("EF2|", StringComparison.Ordinal);
-            if (!gradient && !text.StartsWith("EF1|", StringComparison.Ordinal)) return false;
-            var parts = text.Substring(4).Split(','); var values = new float[gradient ? 10 : 9];
+            var extended = text.StartsWith("EF3|", StringComparison.Ordinal) && (kind == "rotate" || kind == "kaleidoscope");
+            if (!gradient && !extended && !text.StartsWith("EF1|", StringComparison.Ordinal)) return false;
+            var parts = text.Substring(4).Split(','); var values = new float[extended ? 11 : gradient ? 10 : 9];
             if (parts.Length != values.Length) return false;
             for (var i = 0; i < values.Length; i++) if (!VisualValue.Number(parts[i], out values[i])) return false;
             if (gradient && values[9] != 0 && values[9] != 1) return false;
             var extra = ExtraScreenFilters.Find(kind);
-            if (extra != null && !extra.Accepts(values[0])) return false;
+            if (extended && (values[9] != 0 && values[9] != 1 || values[10] != 0 && values[10] != 1 || kind == "rotate" && values[10] != 0)) return false;
+            var angleMode = extended && kind == "kaleidoscope" && values[10] == 1;
+            if (extra != null && !angleMode && !extra.Accepts(values[0])) return false;
             if (values[1] < 0 || values[4] < 0 || values[4] > 2 || (int)values[4] != values[4] ||
                 values[5] != 0 && values[5] != 1 || values[6] < 0 || values[7] < 0 || values[8] < 0) return false;
             if (values[4] == 2)
@@ -153,7 +160,7 @@ namespace SinmaiAlpha.ChartVisuals
             }
             change = new PresentationChange { Kind = kind, Time = time, Target = values[0], Duration = values[1],
                 ParamA = values[2], ParamB = values[3], ShakeMode = (int)values[4], ShakeEnabled = values[5] == 1,
-                Attack = values[6], HoldTime = values[7], Release = values[8], Gradient = !gradient || values[9] == 1 };
+                Attack = values[6], HoldTime = values[7], Release = values[8], Gradient = !gradient || values[9] == 1, RotatePV = !extended || values[9] == 1, AngleMode = angleMode };
             return true;
         }
 

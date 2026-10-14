@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using SinmaiAlpha.ChartVisuals;
 using SinmaiAlpha.Hosting;
@@ -24,13 +24,14 @@ public sealed partial class ChartFrameMotion : MonoBehaviour
         public Vector3 AppliedPosition, AppliedScale;
         public Quaternion AppliedRotation;
         public bool SkipRotation;
+        public bool PV;
         public bool PositionApplied, ScaleApplied, RotationApplied;
 
         public Pose() { }
-        public void Capture(Transform target, bool skipRotation)
+        public void Capture(Transform target, bool skipRotation, bool pv)
         {
             PositionApplied = ScaleApplied = RotationApplied = false;
-            Target = target; SkipRotation = skipRotation;
+            Target = target; SkipRotation = skipRotation; PV = pv;
             Position = target.localPosition; Scale = target.localScale; Rotation = target.localRotation;
             WorldPosition = target.position; WorldRotation = target.rotation;
         }
@@ -45,7 +46,7 @@ public sealed partial class ChartFrameMotion : MonoBehaviour
         }
         public void Apply(Frame frame, bool transformedAncestor)
         {
-            var rotation = SkipRotation ? Quaternion.identity : Quaternion.Euler(0, 0, frame.Degrees);
+            var rotation = SkipRotation ? Quaternion.identity : Quaternion.Euler(0, 0, PV ? frame.PVDegrees : frame.Degrees);
             var relative = WorldPosition - frame.Center;
             var planar = rotation * new Vector3(relative.x * frame.Scale, relative.y * frame.Scale, 0);
             Target.position = new Vector3(frame.Center.x + planar.x + frame.Offset.x,
@@ -63,6 +64,7 @@ public sealed partial class ChartFrameMotion : MonoBehaviour
     {
         public Transform Transform;
         public bool SkipRotation;
+        public bool PV;
         public int Depth;
     }
     private sealed class Frame
@@ -78,7 +80,7 @@ public sealed partial class ChartFrameMotion : MonoBehaviour
         public readonly List<Target> Targets = new();
         public readonly Vector3[] MainCorners = new Vector3[4], FrameCorners = new Vector3[4];
         public Vector3 Center, Offset;
-        public float Degrees, Scale = 1;
+        public float Degrees, PVDegrees, Scale = 1;
         public bool Active;
         private readonly Dictionary<Transform, Target> targetIndex = new();
         private readonly Dictionary<Transform, int> descendantCounts = new();
@@ -117,16 +119,17 @@ public sealed partial class ChartFrameMotion : MonoBehaviour
                 !Main.gameObject.activeInHierarchy || GuiSizes.SinglePlayer && Owner.MonitorIndex != 0) return Active = false;
             var now = NotesManager.GetCurrentMsec();
             Degrees = Rotate?.Evaluate(now) ?? 0;
+            PVDegrees = Rotate?.EvaluatePVRotation(now) ?? 0;
             Scale = Mathf.Clamp(1 + (Zoom?.Evaluate(now) ?? 0), .1f, 8);
             var x = 0f; var y = 0f; Move?.EvaluateVector(now, out x, out y);
             Main.GetWorldCorners(MainCorners); Bounds.GetWorldCorners(FrameCorners);
             Center = (MainCorners[0] + MainCorners[2]) * .5f;
             var offset = (FrameCorners[3] - FrameCorners[0]) * x + (FrameCorners[1] - FrameCorners[0]) * y;
             Offset = new Vector3(offset.x, offset.y, 0);
-            return Active = Math.Abs(Degrees) > .0001f || Math.Abs(Scale - 1) > .0001f ||
+            return Active = Math.Abs(Degrees) > .0001f || Math.Abs(PVDegrees) > .0001f || Math.Abs(Scale - 1) > .0001f ||
                 Math.Abs(Offset.x) > .0001f || Math.Abs(Offset.y) > .0001f;
         }
-        public void Add(Transform transform, bool skipRotation)
+        public void Add(Transform transform, bool skipRotation, bool pv = false)
         {
             if (transform == null) return;
             if (targetIndex.ContainsKey(transform)) return;
@@ -134,20 +137,20 @@ public sealed partial class ChartFrameMotion : MonoBehaviour
             for (var parent = transform.parent; parent != null; parent = parent.parent)
             {
                 depth++;
-                if (targetIndex.TryGetValue(parent, out var ancestor) && ancestor.SkipRotation == skipRotation) return;
+                if (targetIndex.TryGetValue(parent, out var ancestor) && ancestor.SkipRotation == skipRotation && ancestor.PV == pv) return;
             }
             // Only an ancestor of an accepted target can replace descendants.
             // Sibling renderers in the native pools take the short path above.
             if (descendantCounts.ContainsKey(transform))
                 for (var i = Targets.Count - 1; i >= 0; i--)
-                    if (Targets[i].SkipRotation == skipRotation && Targets[i].Transform.IsChildOf(transform))
+                    if (Targets[i].SkipRotation == skipRotation && Targets[i].PV == pv && Targets[i].Transform.IsChildOf(transform))
                     {
                         var removed = Targets[i]; CountAncestors(removed.Transform, -1);
                         targetIndex.Remove(removed.Transform); Targets.RemoveAt(i);
                         removed.Transform = null; spareTargets.Push(removed);
                     }
             var target = spareTargets.Count == 0 ? new Target() : spareTargets.Pop();
-            target.Transform = transform; target.SkipRotation = skipRotation; target.Depth = depth;
+            target.Transform = transform; target.SkipRotation = skipRotation; target.PV = pv; target.Depth = depth;
             Targets.Add(target); targetIndex.Add(transform, target); CountAncestors(transform, 1);
         }
         public void Apply(List<Pose> poses)
@@ -158,7 +161,7 @@ public sealed partial class ChartFrameMotion : MonoBehaviour
             foreach (var target in Targets)
             {
                 var pose = sparePoses.Count == 0 ? new Pose() : sparePoses.Pop();
-                pose.Capture(target.Transform, target.SkipRotation); poses.Add(pose);
+                pose.Capture(target.Transform, target.SkipRotation, target.PV); poses.Add(pose);
             }
             appliedAncestors.Clear();
             foreach (var pose in poses)
@@ -260,9 +263,12 @@ public sealed partial class ChartFrameMotion : MonoBehaviour
             {
                 if (!frame.Evaluate()) continue;
                 var cover = Traverse.Create(frame.Controller).Field("_movieMaskSprite").GetValue<SpriteRenderer>();
+                var movie = Traverse.Create(frame.Controller).Field("_movieSprite").GetValue<SpriteRenderer>();
+                var movieRoot = movie != null && movie.transform.parent != null && movie.transform.parent.name == "ChartMediaFrame" ? movie.transform.parent : null;
                 CollectVisibleRenderers(frame.Controller.gameObject, visibleRenderers);
                 foreach (var renderer in visibleRenderers)
-                    if (renderer != null) frame.Add(renderer.transform, cover != null && renderer.transform == cover.transform);
+                    if (renderer != null) frame.Add(renderer.transform, cover != null && renderer.transform == cover.transform,
+                        (renderer == movie || movieRoot != null && renderer.transform.IsChildOf(movieRoot)) && renderer != cover);
                 foreach (var target in frame.Covers) if (target != null && target.GetComponent<Graphic>() == null) frame.Add(target, true);
                 frame.Apply(frame.WorldPoses);
             }

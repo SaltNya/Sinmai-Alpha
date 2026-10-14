@@ -1,0 +1,6 @@
+bin/
+obj/
+Libs/
+dist/
+artifacts/
+*.user

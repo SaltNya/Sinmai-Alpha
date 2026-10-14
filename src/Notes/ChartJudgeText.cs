@@ -90,12 +90,13 @@ public sealed class ChartJudgeTextDisplay : MonoBehaviour
         internal SpriteRenderer Renderer;
         private float nativeAlpha, appliedAlpha;
         private bool nativeEnabled, appliedEnabled, owned;
-        internal void Apply(float alpha)
+        internal void Apply(PresentationCommands.Track track, double time)
         {
             if (Renderer == null) return;
             var color = Renderer.color;
             if (!owned || color.a != appliedAlpha) nativeAlpha = color.a;
             if (!owned || Renderer.enabled != appliedEnabled) nativeEnabled = Renderer.enabled;
+            var alpha = Mathf.Clamp01(track.EvaluatePlayerBrightness(time, nativeAlpha));
             appliedAlpha = alpha;
             appliedEnabled = nativeEnabled && alpha > .001f;
             owned = true;
@@ -152,8 +153,9 @@ public sealed class ChartJudgeTextDisplay : MonoBehaviour
             if (pool?.GetValue(controller) is IEnumerable items)
                 foreach (var item in items) Enroll(item as Component);
         foreach (var grade in DZoneLane.Grades(monitorIndex)) Enroll(grade);
-        var alpha = Mathf.Clamp01(track.Evaluate(NotesManager.GetCurrentMsec()));
-        foreach (var lease in renderers.Values) lease.Apply(alpha);
+        var time = NotesManager.GetCurrentMsec();
+        foreach (var lease in renderers.Values)
+            if (track.IsPlayerBrightnessActive(time)) lease.Apply(track, time); else lease.Restore();
     }
     private void Restore()
     {

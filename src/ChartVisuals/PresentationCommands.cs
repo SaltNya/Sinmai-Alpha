@@ -21,6 +21,10 @@ namespace SinmaiAlpha.ChartVisuals
         public float ParamA, ParamB;
         public string ColorHex;
         public bool Gradient = true;
+        // EF1/EF2 are legacy; new authoring uses EF3 for explicit PV/angle semantics.
+        public bool RotatePV = true;
+        public bool AngleMode;
+        public PresentationChange Copy() => (PresentationChange)MemberwiseClone();
         public string Encode()
         {
             if (JudgeLineExpansionCommands.IsKind(Kind)) return JudgeLineExpansionCommands.Encode(this);
@@ -120,10 +124,10 @@ namespace SinmaiAlpha.ChartVisuals
             else
             {
                 if (p.Length > 2) return false;
-                var usePlayerDefault = IsPlayerBrightness(kind) && p[0].Trim().Equals("Default", StringComparison.OrdinalIgnoreCase);
-                if (kind.StartsWith("show", StringComparison.Ordinal))
+                var usePlayerDefault = (IsPlayerBrightness(kind) || kind.StartsWith("show", StringComparison.Ordinal)) && p[0].Trim().Equals("Default", StringComparison.OrdinalIgnoreCase);
+                if (usePlayerDefault) v.Target = PlayerDefault;
+                else if (kind.StartsWith("show", StringComparison.Ordinal))
                 { if (!bool.TryParse(p[0].Trim(), out var enabled)) return false; v.Target = enabled ? 1 : 0; }
-                else if (usePlayerDefault) v.Target = PlayerDefault;
                 else if (!VisualValue.Number(p[0], out v.Target)) return false;
                 if (!usePlayerDefault) v.Target = Clamp(v.Target);
                 if (p.Length == 2 && !Duration(p[1], bpm, out v.Duration)) return false;
@@ -223,10 +227,20 @@ namespace SinmaiAlpha.ChartVisuals
             private readonly List<Segment> segments = new List<Segment>();
             private readonly float initial;
             private readonly ShakeTrack shake;
-            private readonly ScreenEffectCommands.Track screenEffect;
+            private readonly ScreenEffectCommands.Track screenEffect, pvRotation, kaleidoscopeAngle;
             public Track(IEnumerable<PresentationChange> changes, string kind)
             {
-                if (ScreenEffectCommands.IsKind(kind)) { screenEffect = new ScreenEffectCommands.Track(changes, kind); return; }
+                if (ScreenEffectCommands.IsKind(kind))
+                {
+                    var events = changes.Where(c => c.Kind == kind).ToArray();
+                    if (kind == "rotate") pvRotation = new ScreenEffectCommands.Track(events.Select(c => { var x = c.Copy(); if (!x.RotatePV) x.Target = 0; return x; }), kind);
+                    if (kind == "kaleidoscope")
+                    {
+                        kaleidoscopeAngle = new ScreenEffectCommands.Track(events.Select(c => { var x = c.Copy(); if (!x.AngleMode) x.Target = 0; return x; }), kind);
+                        events = events.Select(c => { var x = c.Copy(); if (x.AngleMode) x.Target = 1; return x; }).ToArray();
+                    }
+                    screenEffect = new ScreenEffectCommands.Track(events, kind); return;
+                }
                 if (kind == "shake" || kind == "flash" || kind == "tint") { shake = new ShakeTrack(changes.Where(c => c.Kind == kind).OrderBy(c => c.Time)); return; }
                 initial = kind.StartsWith("show", StringComparison.Ordinal) ? 1 : 0;
                 PresentationChange active = null;
@@ -280,6 +294,8 @@ namespace SinmaiAlpha.ChartVisuals
                 var progress = change.Duration <= 0 ? 1 : Clamp((float)((time - change.Time) / (change.Duration * 1000)));
                 return from + (target - from) * progress;
             }
+            public float EvaluatePVRotation(double time) => pvRotation == null ? 0 : pvRotation.Evaluate(time, out _);
+            public float EvaluateKaleidoscopeAngle(double time) => kaleidoscopeAngle == null ? 0 : kaleidoscopeAngle.Evaluate(time, out _);
             public float Evaluate(double time) => Evaluate(time, out _);
             public void EvaluateVector(double time, out float x, out float y)
             {

@@ -1,3 +1,4 @@
+#nullable disable
 using System;
 using System.Globalization;
 
@@ -9,20 +10,23 @@ namespace SinmaiAlpha.ChartVisuals
         public readonly int Sensor;
         public readonly double Duration;
         public readonly float Hs;
-        public NoiseZoneSpec(int sensor, double duration, float hs)
-        { Sensor = sensor; Duration = duration; Hs = hs; }
-        public string Encode() => "NZ1|" + Sensor.ToString(CultureInfo.InvariantCulture) + "|" +
-            Duration.ToString("R", CultureInfo.InvariantCulture) + "|" + Hs.ToString("R", CultureInfo.InvariantCulture);
+        public readonly NoiseControls Controls;
+        public NoiseZoneSpec(int sensor, double duration, float hs, NoiseControls controls = null)
+        { Sensor = sensor; Duration = duration; Hs = hs; Controls = controls; }
+        public string Encode() => (Controls == null ? "NZ1|" : "NZ2|") + Sensor.ToString(CultureInfo.InvariantCulture) + "|" +
+            Duration.ToString("R", CultureInfo.InvariantCulture) + "|" + Hs.ToString("R", CultureInfo.InvariantCulture) + (Controls == null ? "" : "|" + Controls.Encode());
         public static bool TryDecode(string text, out NoiseZoneSpec value)
         {
             value = default;
             if (text == null) return false;
             var p = text.Split('|');
-            if (p.Length != 4 || p[0] != "NZ1" || !int.TryParse(p[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var sensor) ||
+            if (!(p.Length == 4 && p[0] == "NZ1" || p.Length == 5 && p[0] == "NZ2") || !int.TryParse(p[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out var sensor) ||
                 sensor < 0 || sensor >= 33 || !double.TryParse(p[2], NumberStyles.Float, CultureInfo.InvariantCulture, out var duration) ||
                 double.IsNaN(duration) || double.IsInfinity(duration) || duration < 0 ||
                 !TryMultiplier(p[3], out var hs)) return false;
-            value = new NoiseZoneSpec(sensor, duration, hs); return true;
+            NoiseControls controls = null;
+            if (p[0] == "NZ2" && !NoiseControls.Decode(p[4], out controls)) return false;
+            value = new NoiseZoneSpec(sensor, duration, hs, controls); return true;
         }
         public static bool TryMultiplier(string text, out float value)
         {

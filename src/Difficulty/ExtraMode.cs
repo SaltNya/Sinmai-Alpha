@@ -31,7 +31,8 @@ public static class ExtraMode
         // Mode ownership must also work with custom difficulty skins disabled.
         if (!Settings.Current.ExtraDifficulty)
             foreach (var type in new[] { typeof(ExtraDifficulty.CardDataPatch), typeof(ExtraDifficulty.CentralCardPatch),
-                typeof(ExtraDifficulty.MenuPatch), typeof(ExtraDifficulty.InformationDataPatch), typeof(ExtraDifficulty.ResultTrackDataPatch) })
+                typeof(ExtraDifficulty.MenuPatch), typeof(ExtraDifficulty.InformationDataPatch), typeof(ExtraDifficulty.ResultTrackDataPatch),
+                typeof(ExtraDifficulty.SummaryDataPatch) })
                 harmony.PatchAll(type);
     }
 

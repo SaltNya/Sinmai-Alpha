@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -40,55 +40,19 @@ public partial class CustomNoteTypes
     // 地雷 Note 取池：当前 RegistNote 需要该字段时返回地雷池/绝赞池，否则返回原版池。
     private static object GetMinePoolList(GameCtrl instance, string fieldName, System.Type elementType)
     {
-        if (_activeMineFields.Contains(fieldName))
+        var route = PoolRoutes.For(instance);
+        if (route != null && route.Fields.Contains(fieldName))
         {
-            if (MinePools.TryGetValue(instance, out var pools) && pools.TryGetValue(fieldName, out var pool))
+            var owners = route.Kind switch
             {
-                return pool;
-            }
-
-            // 防御：地雷池缺失时回退原版池（与 touchbreak/touchstar 分支一致）——
-            // 返回空 List 会让 RegistNote 遍历 0 次直接返回 false → 地雷音符全部
-            // 静默不注册（音符凭空消失且无日志）。
-            return Traverse.Create(instance).Field(fieldName).GetValue();
+                CustomNoteKind.Mine or CustomNoteKind.MineTouchBreak => MinePools,
+                CustomNoteKind.TouchBreak => TouchBreakPools,
+                CustomNoteKind.TouchStar or CustomNoteKind.TouchBreakStar => TouchStarPools,
+                CustomNoteKind.MineTouchStar => MineTouchStarPools,
+                _ => null
+            };
+            if (owners != null && owners.TryGetValue(instance, out var pools) && pools.TryGetValue(fieldName, out var pool)) return pool;
         }
-
-        if (_activeTouchBreakFields.Contains(fieldName))
-        {
-            // 绝赞 touch：优先用同类型专用池；创建失败时仍可回退原版池。
-            if (TouchBreakPools.TryGetValue(instance, out var criticalPools) &&
-                criticalPools.TryGetValue(fieldName, out var criticalPool))
-            {
-                return criticalPool;
-            }
-
-            return Traverse.Create(instance).Field(fieldName).GetValue();
-        }
-
-        if (_activeTouchStarFields.Contains(fieldName))
-        {
-            // TouchStar：有独立池用独立池；没有回退原版池。
-            if (TouchStarPools.TryGetValue(instance, out var touchStarPools) &&
-                touchStarPools.TryGetValue(fieldName, out var touchStarPool))
-            {
-                return touchStarPool;
-            }
-
-            return Traverse.Create(instance).Field(fieldName).GetValue();
-        }
-
-        if (_activeMineTouchStarFields.Contains(fieldName))
-        {
-            // 地雷 TouchStar（MNSTP）：有独立池用独立池；没有回退原版池。
-            if (MineTouchStarPools.TryGetValue(instance, out var mineTouchStarPools) &&
-                mineTouchStarPools.TryGetValue(fieldName, out var mineTouchStarPool))
-            {
-                return mineTouchStarPool;
-            }
-
-            return Traverse.Create(instance).Field(fieldName).GetValue();
-        }
-
         return Traverse.Create(instance).Field(fieldName).GetValue();
     }
 
@@ -192,54 +156,32 @@ public partial class CustomNoteTypes
         return name != null && Array.IndexOf(MinePoolFieldNames, name) >= 0 ? name : null;
     }
 
-    [HarmonyPrefix]
-    [HarmonyPatch(typeof(GameCtrl), "RegistNote")]
-    public static void RegistNotePrefix(GameCtrl __instance, object[] __args)
+    private sealed class PoolRoute
     {
-        if (!(CustomNoteTypes.FeaturesEnabled(__instance))) {  return; }
+        internal CustomNoteKind Kind;
+        internal HashSet<string> Fields;
+    }
+    private static readonly OwnerCallScope<PoolRoute> PoolRoutes = new();
 
+    [HarmonyPrefix, HarmonyPriority(Priority.First + 50)]
+    [HarmonyPatch(typeof(GameCtrl), "RegistNote")]
+    public static void RegistNotePrefix(GameCtrl __instance, object[] __args, out object __state)
+    {
+        // Enter even for stock charts: a nested call must mask its caller's route.
         var note = __args?.FirstOrDefault(a => a is NoteData) as NoteData;
-        // 补填 bounce 类型（BounceNoteVisualPostfix 的 fallback 用；注册期一定拿到 NoteData）。
-        if (note != null && BounceSegmentsByType.Count > 0)
+        PoolRoute route = null;
+        if (FeaturesEnabled(__instance) && note != null)
         {
-            BounceTypeByNoteIndex[note.indexNote] = ResolveBounceType(note);
+            if (BounceSegmentsByType.Count > 0)
+                BounceTypeByNoteIndex[note.indexNote] = ResolveBounceType(note);
+            var kind = GetNoteKind(note);
+            if (kind != CustomNoteKind.None)
+                route = new PoolRoute { Kind = kind, Fields = GetMineFieldsForNoteType(note.type.getEnum()) };
         }
-
-        var kind = note != null && NoteKinds.TryGetValue(note.indexNote, out var k) ? k : CustomNoteKind.None;
-        _activeMineFields.Clear();
-        _activeTouchBreakFields.Clear();
-        _activeTouchStarFields.Clear();
-        _activeMineTouchStarFields.Clear();
-        if (note != null && kind is CustomNoteKind.Mine or CustomNoteKind.MineTouchBreak)
-        {
-            _activeMineFields.UnionWith(GetMineFieldsForNoteType(note.type.getEnum()));
-        }
-        else if (note != null && kind is CustomNoteKind.TouchBreak or CustomNoteKind.MineTouchBreak)
-        {
-            // 绝赞 touch：走绝赞独立池（BRTTP 重定向为 NMTTP → TouchTap 字段）。
-            _activeTouchBreakFields.UnionWith(GetMineFieldsForNoteType(note.type.getEnum()));
-        }
-        else if (note != null && kind is CustomNoteKind.TouchStar or CustomNoteKind.TouchBreakStar)
-        {
-            // TouchStar：走 TouchStar 独立池（NMSTP/BRSTP 重定向为 NMTTP → TouchTap 字段）。
-            _activeTouchStarFields.UnionWith(GetMineFieldsForNoteType(note.type.getEnum()));
-        }
-        else if (note != null && kind is CustomNoteKind.MineTouchStar)
-        {
-            // 地雷 TouchStar：走 MineTouchStar 独立池（MNSTP 重定向为 NMTTP → TouchTap 字段）。
-            _activeMineTouchStarFields.UnionWith(GetMineFieldsForNoteType(note.type.getEnum()));
-        }
+        __state = PoolRoutes.Enter(__instance, route);
     }
 
-    [HarmonyPostfix]
+    [HarmonyFinalizer, HarmonyPriority(Priority.Last - 50)]
     [HarmonyPatch(typeof(GameCtrl), "RegistNote")]
-    public static void RegistNotePostfix(GameCtrl __instance, object[] __args)
-    {
-        if (!(CustomNoteTypes.FeaturesEnabled(__instance))) {  return; }
-
-        _activeMineFields.Clear();
-        _activeTouchBreakFields.Clear();
-        _activeTouchStarFields.Clear();
-        _activeMineTouchStarFields.Clear();
-    }
+    public static void RegistNoteFinalizer(object __state) => PoolRoutes.Exit(__state);
 }

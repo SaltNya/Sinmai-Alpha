@@ -35,14 +35,23 @@ namespace SinmaiAlpha.ChartVisuals
             text = text.Trim();
             if (!text.StartsWith("(", StringComparison.Ordinal) || !text.EndsWith(")", StringComparison.Ordinal)) return false;
             var pieces = text.Substring(1, text.Length - 2).Split(',');
-            if (pieces.Length != 2 || !Duration(pieces[0], bpm, out var duration)) return false;
-            var direction = pieces[1].Trim().ToUpperInvariant();
+            var stateForm = bool.TryParse(pieces[0].Trim(), out var enabled);
+            if (stateForm && !enabled)
+            {
+                if (pieces.Length != 1) return false;
+                change = new PresentationChange { Kind = Kind, Target = 0 }; return true;
+            }
+            var offset = stateForm ? 1 : 0;
+            if (!stateForm && pieces.Length != 2 || stateForm && pieces.Length > 3) return false;
+            float duration = 0;
+            if (pieces.Length > offset && !Duration(pieces[offset], bpm, out duration)) return false;
+            var direction = pieces.Length > offset + 1 ? pieces[offset + 1].Trim().ToUpperInvariant() : "CW";
             if (direction != "1" && direction != "-1" && direction != "CW" && direction != "CCW") return false;
             change = new PresentationChange { Kind = Kind, Duration = duration, Target = direction == "1" || direction == "CW" ? -22.5f : 22.5f };
             return true;
         }
 
-        public static string Encode(PresentationChange change) => "JX1|" +
+        public static string Encode(PresentationChange change) => (change.Target == 0 ? "JX2|" : "JX1|") +
             change.Duration.ToString("R", CultureInfo.InvariantCulture) + "|" + change.Target.ToString("R", CultureInfo.InvariantCulture);
 
         public static bool Decode(string text, double milliseconds, out PresentationChange change)
@@ -50,8 +59,8 @@ namespace SinmaiAlpha.ChartVisuals
             change = null;
             if (text == null || double.IsNaN(milliseconds) || double.IsInfinity(milliseconds)) return false;
             var p = text.Split('|');
-            if (p.Length != 3 || p[0] != "JX1" || !VisualValue.Number(p[1], out var duration) || duration < 0 ||
-                !VisualValue.Number(p[2], out var angle) || angle != -22.5f && angle != 22.5f) return false;
+            if (p.Length != 3 || (p[0] != "JX1" && p[0] != "JX2") || !VisualValue.Number(p[1], out var duration) || duration < 0 ||
+                !VisualValue.Number(p[2], out var angle) || angle != -22.5f && angle != 22.5f && !(p[0] == "JX2" && angle == 0)) return false;
             change = new PresentationChange { Kind = Kind, Time = milliseconds, Duration = duration, Target = angle };
             return true;
         }
@@ -77,6 +86,7 @@ namespace SinmaiAlpha.ChartVisuals
                 }
                 if (found < 0) return false;
                 var change = events[found];
+                if (change.Target == 0) return false;
                 var progress = change.Duration <= 0 ? 1f : Math.Max(0f, Math.Min(1f, (time - (float)(change.Time / 1000d)) / change.Duration));
                 angle = change.Target * progress;
                 return true;

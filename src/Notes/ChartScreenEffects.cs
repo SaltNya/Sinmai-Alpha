@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -16,7 +16,7 @@ internal sealed class ChartScreenEffects : IDisposable
 {
     private static readonly string[] Kinds = { "gaussian", "neon", "trail", "brightness", "saturation", "contrast", "rainbow", "vignette", "glitch", "tvnoise", "hue", "flash", "tint", "shake" };
     private readonly IDictionary<string, PresentationCommands.Track> tracks;
-    private Material effect, copy;
+    private Material effect, modernEffect, legacyEffect, copy;
     private RenderTexture input, output;
     private readonly RenderTexture[] history = new RenderTexture[3];
     private bool acquired, failed, trailActive;
@@ -52,6 +52,10 @@ internal sealed class ChartScreenEffects : IDisposable
 
     internal bool TryDraw(RenderTexture source, RenderTexture destination, PresentationRect bounds, PresentationRect visible, PresentationRect playfield, double now)
     {
+        // 0.6.0's shader consumes a playfield-sized image and has no legacy
+        // _PlayfieldRect clip. Crop both capture and output in the adapter.
+        bounds = playfield;
+        visible = visible.Intersect(playfield);
         if (failed || !bounds.HasArea || !visible.HasArea) return false;
         var previous = RenderTexture.active;
         try
@@ -75,6 +79,9 @@ internal sealed class ChartScreenEffects : IDisposable
             var hasTrail = tracks.ContainsKey("trail");
 
             EnsureMaterials();
+            PresentationChange kaleidoscopeSource = null;
+            if (tracks.TryGetValue("kaleidoscope", out var kaleidoscopeTrack)) kaleidoscopeTrack.Evaluate(now, out kaleidoscopeSource);
+            effect = kaleidoscopeSource != null && !kaleidoscopeSource.AngleMode ? legacyEffect : modernEffect;
             var width = Math.Max(1, Mathf.RoundToInt(source.width * bounds.Width));
             var height = Math.Max(1, Mathf.RoundToInt(source.height * bounds.Height));
             EnsureTargets(width, height, source.format);
@@ -120,6 +127,7 @@ internal sealed class ChartScreenEffects : IDisposable
                 PresentationChange dominant = null;
                 var amount = tracks.TryGetValue(filter.Kind, out var filterTrack) ? filterTrack.Evaluate(now, out dominant) : 0;
                 effect.SetFloat(filter.Uniform, amount);
+                if (filter.Kind == "kaleidoscope") effect.SetFloat("_KaleidoscopeAngle", (filterTrack?.EvaluateKaleidoscopeAngle(now) ?? 0) * Mathf.Deg2Rad);
                 if (filter.Kind == "shatter" || filter.Kind == "ripple")
                     effect.SetFloat(filter.Uniform + "Phase", dominant == null ? 0 : (float)(now * .001) - (float)(dominant.Time * .001));
             }
@@ -170,7 +178,8 @@ internal sealed class ChartScreenEffects : IDisposable
     {
         if (effect != null && copy != null) return;
         var shader = EffectAssets.Acquire(); acquired = true;
-        effect = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
+        effect = modernEffect = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
+        legacyEffect = new Material(EffectAssets.Legacy) { hideFlags = HideFlags.HideAndDontSave };
         copy = new Material(shader) { hideFlags = HideFlags.HideAndDontSave };
     }
     private void EnsureTargets(int width, int height, RenderTextureFormat format)
@@ -213,7 +222,8 @@ internal sealed class ChartScreenEffects : IDisposable
     public void Dispose()
     {
         Release(ref input); Release(ref output); ReleaseHistory();
-        if (effect != null) Object.Destroy(effect); if (copy != null) Object.Destroy(copy); effect = copy = null;
+        if (modernEffect != null) Object.Destroy(modernEffect); if (legacyEffect != null) Object.Destroy(legacyEffect);
+        if (copy != null) Object.Destroy(copy); effect = modernEffect = legacyEffect = copy = null;
         if (acquired) { acquired = false; EffectAssets.Release(); }
     }
 
@@ -221,6 +231,7 @@ internal sealed class ChartScreenEffects : IDisposable
     {
         private static AssetBundle bundle;
         private static Shader shader;
+        internal static Shader Legacy;
         private static int owners;
         internal static Shader Acquire()
         {
@@ -231,11 +242,12 @@ internal sealed class ChartScreenEffects : IDisposable
                 using var memory = new MemoryStream(); stream.CopyTo(memory);
                 bundle = AssetBundle.LoadFromMemory(memory.ToArray());
                 shader = bundle != null ? bundle.LoadAsset<Shader>("assets/aquamai/alphascreeneffects.shader") : null;
-                if (shader == null || !shader.isSupported) { if (bundle != null) bundle.Unload(true); bundle = null; shader = null; throw new InvalidOperationException("Compiled effect shader unsupported"); }
+                Legacy = bundle != null ? bundle.LoadAsset<Shader>("assets/aquamai/alphascreeneffectslegacy.shader") : null;
+                if (shader == null || !shader.isSupported || Legacy == null || !Legacy.isSupported) { if (bundle != null) bundle.Unload(true); bundle = null; shader = Legacy = null; throw new InvalidOperationException("Compiled effect shader unsupported"); }
             }
             owners++; return shader;
         }
         internal static void Release()
-        { if (--owners > 0) return; if (bundle != null) bundle.Unload(true); bundle = null; shader = null; owners = 0; }
+        { if (--owners > 0) return; if (bundle != null) bundle.Unload(true); bundle = null; shader = Legacy = null; owners = 0; }
     }
 }

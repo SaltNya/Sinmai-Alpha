@@ -1,9 +1,11 @@
-{
+﻿{
   "ChartFeatures": true,
   "ExtraDifficulty": true,
   "ShowMineHitFeedback": true,
   "MineVolume": 0.7,
   "ExtraPoolCount": 128,
   "SinglePlayer": null,
-  "HideSubMonitor": false
+  "HideSubMonitor": false,
+  "ShowSssJudgePath": false,
+  "GameplayDiagnostics": false
 }
