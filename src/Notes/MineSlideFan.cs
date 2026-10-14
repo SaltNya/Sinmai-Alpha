@@ -1,4 +1,5 @@
 using System.Reflection;
+using HarmonyLib;
 using Manager;
 using Monitor;
 using UnityEngine;
@@ -17,6 +18,12 @@ namespace SinmaiAlpha.Notes;
 /// </summary>
 public class MineSlideFan : SlideFan
 {
+    private static readonly AccessTools.FieldRef<SlideFan, SpriteRenderer[]> SpriteLines = BuildSpriteLinesRef();
+    private static AccessTools.FieldRef<SlideFan, SpriteRenderer[]> BuildSpriteLinesRef()
+    {
+        try { return AccessTools.FieldRefAccess<SlideFan, SpriteRenderer[]>("_spriteLines"); }
+        catch { return null; } // Retain the reflection path on unsupported game builds.
+    }
     // SlideFan.Awake 是 private 非虚，直接遮蔽（不会触发基类）。
     private void Awake()
     {
@@ -44,7 +51,7 @@ public class MineSlideFan : SlideFan
     {
         base.UpdateAlpha();
         // slide_fun_mine_00-10 是白色贴图，染灰（地雷风格），保留 base 算好的 alpha 淡入淡出。
-        var lines = HarmonyLib.Traverse.Create(this).Field("_spriteLines").GetValue<SpriteRenderer[]>();
+        var lines = SpriteLines != null ? SpriteLines(this) : Traverse.Create(this).Field("_spriteLines").GetValue<SpriteRenderer[]>();
         if (lines == null) return;
         foreach (var sr in lines)
         {

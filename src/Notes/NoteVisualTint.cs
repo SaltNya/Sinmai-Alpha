@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using MelonLoader;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -14,7 +15,22 @@ public partial class CustomNoteTypes
         public int Width, Height;
     }
     private static readonly Dictionary<Sprite, VisualTexture> VisualSourceTextures = new();
-    private static readonly Dictionary<(Sprite Sprite, int Rgb, Color32 Vertex), Sprite> VisualTintSprites = new();
+    // Color32 does not implement IEquatable in this Unity version. Packing it
+    // avoids boxing the vertex color on every cached sprite lookup.
+    private readonly struct VisualTintKey : IEquatable<VisualTintKey>
+    {
+        public readonly Sprite Sprite;
+        public readonly int Rgb, Vertex;
+        public VisualTintKey(Sprite sprite, int rgb, Color32 vertex)
+        {
+            Sprite = sprite; Rgb = rgb;
+            Vertex = vertex.r | vertex.g << 8 | vertex.b << 16 | vertex.a << 24;
+        }
+        public bool Equals(VisualTintKey other) => ReferenceEquals(Sprite, other.Sprite) && Rgb == other.Rgb && Vertex == other.Vertex;
+        public override bool Equals(object value) => value is VisualTintKey other && Equals(other);
+        public override int GetHashCode() => unchecked((RuntimeHelpers.GetHashCode(Sprite) * 31 + Rgb) * 31 + Vertex);
+    }
+    private static readonly Dictionary<VisualTintKey, Sprite> VisualTintSprites = new();
     private static readonly HashSet<Sprite> VisualTintFailures = new();
     private static readonly Dictionary<Sprite, Sprite> BorrowedGraySprites = new();
 
@@ -23,14 +39,9 @@ public partial class CustomNoteTypes
         if (BorrowedGraySprites.TryGetValue(source, out var cached)) return cached;
         try
         {
-            var original = ReadVisualTexture(source);
-            var pixels = new Color32[original.Pixels.Length];
-            for (var i = 0; i < pixels.Length; i++)
-            {
-                var input = (Color)original.Pixels[i];
-                var luma = input.r * .299f + input.g * .587f + input.b * .114f;
-                pixels[i] = new Color(luma, luma, luma, input.a);
-            }
+            var original = GetVisualSourceTexture(source);
+            var pixels = VisualPixelBuffer(original.Pixels.Length);
+            GrayVisualPixels(original.Pixels, pixels);
             var texture = new Texture2D(original.Width, original.Height, TextureFormat.RGBA32, false)
                 { name = "AquaMai Borrowed Mine", wrapMode = TextureWrapMode.Clamp };
             texture.SetPixels32(pixels); texture.Apply(false, false);
@@ -51,46 +62,15 @@ public partial class CustomNoteTypes
     private static Sprite GetVisualTintSprite(Sprite source, int rgb, Color vertex)
     {
         Color32 keyColor = new Color(vertex.r, vertex.g, vertex.b, 1);
-        var key = (source, rgb, keyColor);
+        var key = new VisualTintKey(source, rgb, keyColor);
         if (VisualTintSprites.TryGetValue(key, out var cached)) return cached;
         if (VisualTintFailures.Contains(source)) return source;
         var bakeStarted = Hosting.GameplayDiagnostics.Enabled ? System.Diagnostics.Stopwatch.GetTimestamp() : 0;
         try
         {
-            if (!VisualSourceTextures.TryGetValue(source, out var original))
-            {
-                original = ReadVisualTexture(source); VisualSourceTextures.Add(source, original);
-            }
-            var target = new Color(((rgb >> 16) & 255) / 255f, ((rgb >> 8) & 255) / 255f, (rgb & 255) / 255f, 1);
-            Color.RGBToHSV(target, out var targetHue, out var targetSat, out var targetValue);
-            var pixels = new Color32[original.Pixels.Length];
-            var vertexRgb = (Color)keyColor;
-            // Alpha does not affect the RGB transform. Reuse the transformed RGB
-            // across antialiased pixels; bound the palette for photographic skins.
-            var palette = new Dictionary<int, Color32>();
-            for (var i = 0; i < pixels.Length; i++)
-            {
-                var input = (Color)original.Pixels[i];
-                if (input.a < .01f) { pixels[i] = new Color(0, 0, 0, input.a); continue; }
-                var originalPixel = original.Pixels[i];
-                var pixelKey = originalPixel.r << 16 | originalPixel.g << 8 | originalPixel.b;
-                if (palette.TryGetValue(pixelKey, out var reused))
-                { reused.a = originalPixel.a; pixels[i] = reused; continue; }
-                input.r *= vertexRgb.r; input.g *= vertexRgb.g; input.b *= vertexRgb.b;
-                Color.RGBToHSV(input, out _, out var sourceSat, out var sourceValue);
-                var darkGuard = VisualSmooth(.04f, .16f, sourceValue);
-                var satGate = VisualSmooth(.05f, .25f, sourceSat);
-                var detailGain = .35f * (1 - targetValue);
-                var shapedValue = Mathf.Clamp01(sourceValue * targetValue + detailGain * (sourceValue - .5f));
-                var tint = Color.HSVToRGB(targetHue, Mathf.Clamp01(sourceSat * targetSat), shapedValue);
-                var chroma = Color.Lerp(input, tint, darkGuard * satGate);
-                var luma = input.r * .299f + input.g * .587f + input.b * .114f;
-                var gray = Mathf.Clamp01(luma * (targetValue * 2) + detailGain * (luma - .5f));
-                var achromatic = Color.Lerp(input, new Color(gray, gray, gray, input.a), darkGuard);
-                var output = Color.Lerp(chroma, achromatic, 1 - VisualSmooth(.05f, .20f, targetSat));
-                output.a = input.a; pixels[i] = output;
-                if (palette.Count < 4096) palette[pixelKey] = pixels[i];
-            }
+            var original = GetVisualSourceTexture(source);
+            var pixels = VisualPixelBuffer(original.Pixels.Length);
+            TintVisualPixels(original.Pixels, pixels, rgb, keyColor);
             var texture = new Texture2D(original.Width, original.Height, TextureFormat.RGBA32, false)
                 { name = "AquaMai Note Tint", filterMode = source.texture.filterMode, wrapMode = TextureWrapMode.Clamp };
             texture.SetPixels32(pixels); texture.Apply(false, false);
@@ -114,6 +94,12 @@ public partial class CustomNoteTypes
     private static float VisualSmooth(float low, float high, float value)
     {
         var t = Mathf.Clamp01((value - low) / (high - low)); return t * t * (3 - 2 * t);
+    }
+    private static VisualTexture GetVisualSourceTexture(Sprite source)
+    {
+        if (!VisualSourceTextures.TryGetValue(source, out var value))
+            VisualSourceTextures.Add(source, value = ReadVisualTexture(source));
+        return value;
     }
     private static VisualTexture ReadVisualTexture(Sprite sprite)
     {
@@ -203,6 +189,9 @@ public partial class CustomNoteTypes
             Object.Destroy(sprite.texture); Object.Destroy(sprite);
         }
         VisualTintSprites.Clear(); VisualSourceTextures.Clear(); VisualTintFailures.Clear();
+        VisualPixelScratch = null;
+        ChartVisuals.VisualState.ReleaseIndexes();
+        ResetHintTintWarmup();
         foreach (var overlay in VisualOverlays.Values)
         { overlay.Restore(); if (overlay.Render != null) Object.Destroy(overlay.Render.gameObject); }
         VisualOverlays.Clear(); VisualOverlayRenderers.Clear();

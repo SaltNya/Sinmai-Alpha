@@ -29,6 +29,7 @@ public partial class CustomNoteTypes
         public NoteData Note;
         public int Monitor;
         public bool Standalone;
+        public readonly VisualValue Live = new(), Look = new();
         public SpriteRenderer Body, Guide;
         public Sprite Model, Picture, GuidePicture, TouchPetalPicture;
         public SpriteRenderer[] TouchPetals;
@@ -285,11 +286,12 @@ public partial class CustomNoteTypes
             lease.Body.transform.localPosition = point * 100;
             var rotate = route.Family == "star" || route.Family == "hold" || route.Family == "touchhold";
             lease.Body.transform.localRotation = Quaternion.Euler(0, 0, rotate ? Mathf.Atan2(tangent.y, tangent.x) * Mathf.Rad2Deg + 18 : 0);
-            var visual = BorrowedVisual(note, route); var live = new VisualValue();
+            var visual = BorrowedVisual(note, route); var live = ResetVisualValue(lease.Live);
             if (timeline != null && timeline.Streams.TryGetValue(VisualNotes.TryGetValue(note, out var payload) ? payload.Stream : "", out var changes))
-                live = VisualState.Resolve(changes, now, visual);
-            var look = new VisualValue { Color = live.Color ?? visual.Base.Color, Alpha = live.Alpha ?? visual.Base.Alpha,
-                X = live.X ?? visual.Base.X, Y = live.Y ?? visual.Base.Y };
+                VisualState.Resolve(changes, now, visual, null, live);
+            var look = lease.Look;
+            look.Color = live.Color ?? visual.Base.Color; look.Alpha = live.Alpha ?? visual.Base.Alpha;
+            look.X = live.X ?? visual.Base.X; look.Y = live.Y ?? visual.Base.Y;
             var size = route.Family == "star" ? 1.5f : 1;
             lease.Body.transform.localScale = new Vector3(size * (look.X ?? 1), size * (look.Y ?? 1), 1);
             if ((route.Family == "touch" || route.Family == "touchhold") && visual.Break && !look.Color.HasValue) look.Color = 0xFF6538;

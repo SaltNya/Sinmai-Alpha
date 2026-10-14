@@ -24,6 +24,7 @@ public partial class CustomNoteTypes
     {
         public int Monitor;
         public VisualPayload Payload;
+        public readonly VisualValue Live = new(), Guide = new();
         public readonly List<VisualPart> Parts = new();
     }
     private sealed class VisualOverlay
@@ -86,6 +87,8 @@ public partial class CustomNoteTypes
         PendingVisualCommands.Clear();
         ReserveVisualNotes.Remove(__instance);
         VisualTimelines.Remove(__instance);
+        VisualState.ReleaseIndexes();
+        ResetHintTintWarmup();
     }
     [HarmonyPrefix, HarmonyPatch(typeof(NotesRecord), "addRecord", new[] { typeof(string) })]
     public static void ReadVisualCommand(string str)
@@ -261,15 +264,21 @@ public partial class CustomNoteTypes
             if (pair.Key == null || !pair.Key.gameObject.activeInHierarchy || Traverse.Create(pair.Key).Field("EndFlag").GetValue<bool>())
             { RestoreVisualLease(pair.Key); VisualOwners.Remove(pair.Key); continue; }
             var payload = lease.Payload;
-            var live = new VisualValue(); var guide = new VisualValue();
+            var live = ResetVisualValue(lease.Live); var guide = ResetVisualValue(lease.Guide);
             if (timeline != null && timeline.Streams.TryGetValue(payload.Stream, out var changes))
             {
-                live = VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note);
-                if (payload.Note.Family == "slide") guide = VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note, "slidestar");
+                VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note, null, live);
+                if (payload.Note.Family == "slide") VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note, "slidestar", guide);
             }
             foreach (var part in lease.Parts)
                 ApplyVisualPart(part, part.Guide ? guide : live, part.Guide ? payload.Note.Guide : payload.Note.Base);
         }
+    }
+
+    private static VisualValue ResetVisualValue(VisualValue value)
+    {
+        value.Color = null; value.X = null; value.Y = null; value.Alpha = null;
+        return value;
     }
 
     [HarmonyPrefix, HarmonyPatch(typeof(GameCtrl), "ForceNoteCollect")]

@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 // Shared by conversion and the game adapter. No Unity or preview-player dependency.
 namespace SinmaiAlpha.ChartVisuals
@@ -126,34 +127,328 @@ namespace SinmaiAlpha.ChartVisuals
             return true;
         }
 
+        // Called per visual-leased note per frame (AfterVisualFrame / UpdateBorrowedNotes) while the GC is
+        // disabled, so it allocates only the result: the type priority order used to be an iterator over a
+        // closure (5 allocations per call); First walks the same candidates in the same order, eagerly.
         public static VisualValue Resolve(IList<VisualChange> changes, double time, VisualNote note, string family = null)
         {
+            return Resolve(changes, time, note, family, new VisualValue());
+        }
+
+        // Same, filling a caller-owned value instead of a new one: every field is overwritten exactly as a fresh
+        // VisualValue would be filled, so a per-frame scratch (never one of the changes' own values) can be reused.
+        public static VisualValue Resolve(IList<VisualChange> changes, double time, VisualNote note, string family, VisualValue into)
+        {
             family = family ?? note.Family;
-            VisualValue Lookup(string kind, string type)
+            StreamIndex index = IndexOf(changes);
+            into.Color = null;
+            into.X = null;
+            into.Y = null;
+            into.Alpha = null;
+            VisualValue visualValue2 = First(changes, index, time, note, family, "color");
+            if (visualValue2 != null)
             {
-                for (var i = changes.Count - 1; i >= 0; i--)
-                    if (changes[i].Time <= time + .000001 && changes[i].Kind == kind && changes[i].Type == type) return changes[i].Value;
+                into.Color = visualValue2.Color;
+            }
+            visualValue2 = First(changes, index, time, note, family, "size");
+            if (visualValue2 != null)
+            {
+                into.X = visualValue2.X;
+                into.Y = visualValue2.Y;
+            }
+            visualValue2 = First(changes, index, time, note, family, "alpha");
+            if (visualValue2 != null)
+            {
+                into.Alpha = visualValue2.Alpha;
+            }
+            return into;
+        }
+
+        // First value of this kind that is set, trying the types in priority order:
+        // mine (and nothing else for a mine's colour), break, each, the family, tap for a star's colour,
+        // then the untyped "" (except for a slide's size).
+        private static VisualValue First(IList<VisualChange> changes, StreamIndex index, double time, VisualNote note, string family, string kind)
+        {
+            KindIndex kinds = null;
+            if (index != null)
+            {
+                index.Kinds.TryGetValue(kind, out kinds);
+            }
+            // Noise zones never inherit untyped or note-family values.
+            if (family == "blockarea") return Lookup(changes, index, kinds, time, kind, "blockarea");
+            VisualValue visualValue;
+            if (note.Mine)
+            {
+                visualValue = Lookup(changes, index, kinds, time, kind, "mine");
+                if (Has(visualValue, kind))
+                {
+                    return visualValue;
+                }
+                if (kind == "color")
+                {
+                    return null;
+                }
+            }
+            if (note.Break)
+            {
+                visualValue = Lookup(changes, index, kinds, time, kind, "break");
+                if (Has(visualValue, kind))
+                {
+                    return visualValue;
+                }
+            }
+            if (note.Each)
+            {
+                visualValue = Lookup(changes, index, kinds, time, kind, "each");
+                if (Has(visualValue, kind))
+                {
+                    return visualValue;
+                }
+            }
+            visualValue = Lookup(changes, index, kinds, time, kind, family);
+            if (Has(visualValue, kind))
+            {
+                return visualValue;
+            }
+            if (kind == "color" && family == "star")
+            {
+                visualValue = Lookup(changes, index, kinds, time, kind, "tap");
+                if (Has(visualValue, kind))
+                {
+                    return visualValue;
+                }
+            }
+            if (kind != "size" || family != "slide")
+            {
+                visualValue = Lookup(changes, index, kinds, time, kind, "");
+                if (Has(visualValue, kind))
+                {
+                    return visualValue;
+                }
+            }
+            return null;
+        }
+
+        private static bool Has(VisualValue value, string kind)
+        {
+            if (value == null)
+            {
+                return false;
+            }
+            switch (kind)
+            {
+            case "color":
+                return value.Color.HasValue;
+            case "size":
+                return value.X.HasValue;
+            default:
+                return value.Alpha.HasValue;
+            }
+        }
+
+        // The change Lookup returns is the one with the highest list index among those with Time <= time + 1e-6 and this
+        // exact Kind and Type (ordinal ==). The stream lists are built once per load, stably sorted by Time
+        // (BuildVisualCommands' OrderBy) and never changed afterwards, so each (Kind, Type) subsequence is ascending and
+        // its matches are a prefix of it: the backward scan's result is that prefix's last element, found here by binary
+        // search instead of a scan over the whole list per type tried. NaN times never match (NaN <= x is false; OrderBy
+        // puts them first) and are left out; a list with a null change or a non-ascending subsequence keeps the scan.
+        private static VisualValue Lookup(IList<VisualChange> changes, StreamIndex index, KindIndex kinds, double time, string kind, string type)
+        {
+            if (index == null)
+            {
+                for (int num = changes.Count - 1; num >= 0; num--)
+                {
+                    VisualChange visualChange = changes[num];
+                    if (visualChange.Time <= time + 1E-06 && visualChange.Kind == kind && visualChange.Type == type)
+                    {
+                        return visualChange.Value;
+                    }
+                }
                 return null;
             }
-            IEnumerable<string> Priority(string kind)
+            Series value;
+            if (kinds == null)
             {
-                if (family == "blockarea") { yield return "blockarea"; yield break; }
-                if (note.Mine)
-                {
-                    yield return "mine";
-                    if (kind == "color") yield break;
-                }
-                if (note.Break) yield return "break";
-                if (note.Each) yield return "each";
-                yield return family;
-                if (kind == "color" && family == "star") yield return "tap";
-                if (kind != "size" || family != "slide") yield return "";
+                value = null;
             }
-            var result = new VisualValue();
-            foreach (var type in Priority("color")) { var v = Lookup("color", type); if (v?.Color != null) { result.Color = v.Color; break; } }
-            foreach (var type in Priority("size")) { var v = Lookup("size", type); if (v?.X != null) { result.X = v.X; result.Y = v.Y; break; } }
-            foreach (var type in Priority("alpha")) { var v = Lookup("alpha", type); if (v?.Alpha != null) { result.Alpha = v.Alpha; break; } }
-            return result;
+            else if (type == null)
+            {
+                value = kinds.NullType;
+            }
+            else
+            {
+                kinds.Types.TryGetValue(type, out value);
+            }
+            if (value == null)
+            {
+                return null;
+            }
+            double num2 = time + 1E-06;
+            double[] times = value.Times;
+            int num3 = 0;
+            int num4 = value.Count;
+            while (num3 < num4)
+            {
+                int num5 = (num3 + num4) >> 1;
+                if (times[num5] <= num2)
+                {
+                    num3 = num5 + 1;
+                }
+                else
+                {
+                    num4 = num5;
+                }
+            }
+            if (num3 != 0)
+            {
+                return value.Values[num3 - 1];
+            }
+            return null;
+        }
+
+        private sealed class Series
+        {
+            public double[] Times = new double[4];
+
+            public VisualValue[] Values = new VisualValue[4];
+
+            public int Count;
+
+            public void Add(double time, VisualValue value)
+            {
+                if (Count == Times.Length)
+                {
+                    Array.Resize(ref Times, Count * 2);
+                    Array.Resize(ref Values, Count * 2);
+                }
+                Times[Count] = time;
+                Values[Count] = value;
+                Count++;
+            }
+        }
+
+        private sealed class KindIndex
+        {
+            public readonly Dictionary<string, Series> Types = new Dictionary<string, Series>(StringComparer.Ordinal);
+
+            public Series NullType;
+        }
+
+        private sealed class StreamIndex
+        {
+            public IList<VisualChange> Changes;
+
+            public int Count;
+
+            public bool Usable;
+
+            public readonly Dictionary<string, KindIndex> Kinds = new Dictionary<string, KindIndex>(StringComparer.Ordinal);
+        }
+
+        private sealed class ReferenceComparer : IEqualityComparer<IList<VisualChange>>
+        {
+            public static readonly ReferenceComparer Instance = new ReferenceComparer();
+
+            public bool Equals(IList<VisualChange> x, IList<VisualChange> y)
+            {
+                return x == y;
+            }
+
+            public int GetHashCode(IList<VisualChange> obj)
+            {
+                return RuntimeHelpers.GetHashCode(obj);
+            }
+        }
+
+        // Indexes by list identity. Every caller passes a VisualTimeline stream list, so this holds one entry per stream
+        // of the loaded charts; ReleaseIndexes drops them at chart load and release (the cap bounds it regardless). The
+        // one-entry front cache serves the usual case of a frame's leases all reading the same stream.
+        private static readonly Dictionary<IList<VisualChange>, StreamIndex> Indexes = new Dictionary<IList<VisualChange>, StreamIndex>(ReferenceComparer.Instance);
+
+        private static StreamIndex LastIndex;
+
+        public static void ReleaseIndexes()
+        {
+            Indexes.Clear();
+            LastIndex = null;
+        }
+
+        private static StreamIndex IndexOf(IList<VisualChange> changes)
+        {
+            if (changes == null)
+            {
+                return null;
+            }
+            StreamIndex value = LastIndex;
+            if (value == null || value.Changes != changes)
+            {
+                if (!Indexes.TryGetValue(changes, out value))
+                {
+                    if (Indexes.Count >= 1024)
+                    {
+                        Indexes.Clear();
+                    }
+                    value = Build(changes);
+                    Indexes.Add(changes, value);
+                }
+                LastIndex = value;
+            }
+            if (value.Count != changes.Count)
+            {
+                value = Build(changes);
+                Indexes[changes] = value;
+                LastIndex = value;
+            }
+            if (!value.Usable)
+            {
+                return null;
+            }
+            return value;
+        }
+
+        private static StreamIndex Build(IList<VisualChange> changes)
+        {
+            StreamIndex streamIndex = new StreamIndex
+            {
+                Changes = changes,
+                Count = changes.Count,
+                Usable = true
+            };
+            for (int i = 0; i < streamIndex.Count; i++)
+            {
+                VisualChange visualChange = changes[i];
+                if (visualChange == null)
+                {
+                    streamIndex.Usable = false;
+                    break;
+                }
+                if (visualChange.Kind == null || double.IsNaN(visualChange.Time))
+                {
+                    continue;
+                }
+                if (!streamIndex.Kinds.TryGetValue(visualChange.Kind, out var value))
+                {
+                    value = new KindIndex();
+                    streamIndex.Kinds.Add(visualChange.Kind, value);
+                }
+                Series value2;
+                if (visualChange.Type == null)
+                {
+                    value2 = value.NullType ?? (value.NullType = new Series());
+                }
+                else if (!value.Types.TryGetValue(visualChange.Type, out value2))
+                {
+                    value2 = new Series();
+                    value.Types.Add(visualChange.Type, value2);
+                }
+                if (value2.Count > 0 && visualChange.Time < value2.Times[value2.Count - 1])
+                {
+                    streamIndex.Usable = false;
+                    break;
+                }
+                value2.Add(visualChange.Time, visualChange.Value);
+            }
+            return streamIndex;
         }
     }
 }

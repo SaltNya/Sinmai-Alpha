@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using HarmonyLib;
 using Manager;
 using Monitor;
@@ -19,12 +19,21 @@ public partial class CustomNoteTypes
     [HarmonyLib.HarmonyPatch(typeof(Monitor.Game.GameCtrl), "IsReady")]
     public static class NoteTintWarmupPatch
     {
-        public static void Postfix(Monitor.Game.GameCtrl __instance, bool __result)
+        public static void Postfix(Monitor.Game.GameCtrl __instance, ref bool __result)
         {
-            if (!__result || !FeaturesEnabled(__instance)) return;
+            if (!__result || GameManager.IsAdvDemo || !FeaturesEnabled(__instance)) return;
             var reader = Manager.NotesManager.Instance(__instance.MonitorIndex)?.getReader();
             if (reader == null || TintWarmedReaders.Contains((__instance, reader))) return;
-            if (!WarmHintTints(__instance, reader)) return;
+            try
+            {
+                if (!WarmHintTints(__instance, reader)) { __result = false; return; }
+            }
+            catch (System.Exception e)
+            {
+                TintWarmedReaders.Add((__instance, reader));
+                MelonLoader.MelonLogger.Warning("[Note Visual] Tint warmup skipped: " + e.Message);
+                return; // A failed optimization must not trap the player on the loading screen.
+            }
             var sprite = Process.GameNoteImageContainer.NormalTap[0];
             if (sprite == null) return;
             var obj = new GameObject("Sinmai-Alpha tint warmup");
@@ -37,36 +46,6 @@ public partial class CustomNoteTypes
             finally { NoteTintBlocks.Remove(render); Object.Destroy(obj); }
             TintWarmedReaders.Add((__instance, reader));
         }
-    }
-    // Each-guide sprites keep the native arc material, so they cannot use the
-    // ordinary note tint shader. Bake their finite chart colors during loading,
-    // before the gameplay clock starts, rather than on the first COLORV frame.
-    private static bool WarmHintTints(Monitor.Game.GameCtrl controller, NotesReader reader)
-    {
-        var colors = new HashSet<int>();
-        if (VisualTimelines.TryGetValue(reader, out var timeline))
-            foreach (var changes in timeline.Streams.Values)
-                foreach (var change in changes)
-                    if (change.Type != "blockarea" && change.Type != "slidestar" && change.Value?.Color is int rgb)
-                        colors.Add(rgb);
-        foreach (var note in reader.GetNoteList())
-            if (VisualNotes.TryGetValue(note, out var payload) && payload.Note.Base.Color is int rgb)
-                colors.Add(rgb);
-        if (colors.Count == 0) return true;
-        var guides = Traverse.Create(controller).Field("_guideObjectList").GetValue<List<NoteGuide>>();
-        if (guides == null || guides.Count == 0) return false;
-        var seen = new HashSet<(Sprite, Color32)>();
-        foreach (var guide in guides)
-        {
-            if (guide == null) continue;
-            var render = Traverse.Create(guide).Field("_spriteEachRender").GetValue<SpriteRenderer>();
-            if (render == null || render.sprite == null) return false;
-            var vertex = render.color;
-            Color32 key = new Color(vertex.r, vertex.g, vertex.b, 1);
-            if (!seen.Add((render.sprite, key))) continue;
-            foreach (var rgb in colors) GetVisualTintSprite(render.sprite, rgb, vertex);
-        }
-        return seen.Count != 0;
     }
     private static bool ApplyNoteTintMaterial(SpriteRenderer render, Sprite source, Color vertex,
         int? rgb, float? alpha, Material native = null, bool grayscale = false)
