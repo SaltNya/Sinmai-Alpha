@@ -108,7 +108,18 @@ public static partial class GameplayDiagnostics
                 new KeyValuePair<System.Type,string>(typeof(GameCtrl), "RegistNote"),
                 new KeyValuePair<System.Type,string>(typeof(Notes.ChartScreenEffects), "TryDraw"),
                 new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes.NoiseZoneDisplay), "LateUpdate"),
-                new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes.NoiseZoneCompositor), "Prepare") };
+                new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes.NoiseZoneCompositor), "Prepare"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes.NoiseZoneDisplay), "FillActiveMask"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes.NoiseZoneDisplay), "FillWarningMask"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes.NoiseZoneCompositor), "ProtectWarningBorder"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes.NoiseZoneCompositor), "SpreadStyles"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "LateUpdate"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "OnPreCull"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "PrepareIsolation"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "HasLayerCollision"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "LeaseRenderers"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "RenderIsolationCamera"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "CompositeIsolation") };
             foreach (var target in targets)
                 foreach (var method in target.Key.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly))
                     if (method.Name == target.Value)

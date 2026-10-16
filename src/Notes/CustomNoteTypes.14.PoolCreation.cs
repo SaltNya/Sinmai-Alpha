@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -143,7 +143,10 @@ public partial class CustomNoteTypes
             if (arrows != null)
             {
                 var list = new List<SpriteRenderer>();
-                foreach (var unused in arrows)
+                // Prewarm at least 1024 per type; longer connected mine paths
+                // receive additional arrows after the chart manager is attached.
+                var target = Math.Max(arrows.Count, DefaultMineArrowCapacity);
+                for (var i = 0; i < target; i++)
                 {
                     var sr = UnityEngine.Object.Instantiate(GameNotePrefabContainer.Arrow, parent.transform);
                     sr.gameObject.SetActive(false);
@@ -158,7 +161,8 @@ public partial class CustomNoteTypes
             if (breakArrows != null)
             {
                 var list = new List<BreakSlide>();
-                foreach (var unused in breakArrows)
+                var target = Math.Max(breakArrows.Count, DefaultMineArrowCapacity);
+                for (var i = 0; i < target; i++)
                 {
                     var bs = UnityEngine.Object.Instantiate(GameNotePrefabContainer.BreakArrow, parent.transform);
                     bs.gameObject.SetActive(false);

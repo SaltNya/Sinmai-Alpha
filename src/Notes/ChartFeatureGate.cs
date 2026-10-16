@@ -30,9 +30,7 @@ internal static class ChartFeatureGate
         if (string.IsNullOrWhiteSpace(path) || IsA000(path)) return null;
         try {
             path = FileSystem.ResolvePath(path);
-            var marker = Path.ChangeExtension(path, ".ExtraDifficulty.flag");
-            if (!File.Exists(marker) && difficulty == 3) marker = Path.Combine(Path.GetDirectoryName(path), "ExtraDifficulty.flag");
-            return File.Exists(marker) ? ChartFlags.Parse(File.ReadAllText(marker)).TapInHoldOverride : null;
+            return ChartMetadata.Read(path, difficulty, message => MelonLoader.MelonLogger.Warning("[Chart Metadata] " + message))?.TapInHoldOverride;
         } catch (IOException) { return null; } catch (UnauthorizedAccessException) { return null; } catch (ArgumentException) { return null; }
     }
     internal static bool AnySelected => Selected[0] || Selected[1];

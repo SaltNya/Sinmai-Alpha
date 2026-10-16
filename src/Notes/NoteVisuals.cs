@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -43,6 +43,9 @@ public partial class CustomNoteTypes
     private static readonly ConditionalWeakTable<NoteData, VisualPayload> VisualNotes = new();
     private static readonly ConditionalWeakTable<NotesReader, VisualTimeline> VisualTimelines = new();
     private static readonly Dictionary<Component, VisualLease> VisualOwners = new();
+    private static readonly List<KeyValuePair<Component, VisualLease>> VisualFrameOwners = new();
+    private static readonly AccessTools.FieldRef<NoteBase, bool> VisualNoteEnded = AccessTools.FieldRefAccess<NoteBase, bool>("EndFlag");
+    private static readonly AccessTools.FieldRef<SlideRoot, bool> VisualSlideEnded = AccessTools.FieldRefAccess<SlideRoot, bool>("EndFlag");
     private static readonly Dictionary<SpriteRenderer, VisualOverlay> VisualOverlays = new();
     private static readonly HashSet<SpriteRenderer> VisualOverlayRenderers = new();
     private static List<(int Bar, int Grid, string Kind, string Text)> PendingVisualCommands => RuntimeCharts.Current.PendingVisualCommands;
@@ -257,22 +260,30 @@ public partial class CustomNoteTypes
         var reader = NotesManager.Instance(__instance.MonitorIndex).getReader();
         VisualTimelines.TryGetValue(reader, out var timeline);
         ApplyReserveVisuals(__instance.MonitorIndex, reader, timeline);
-        foreach (var pair in VisualOwners.ToArray())
+        // Preserve snapshot semantics while reusing storage across frames. In
+        // particular, removing ended notes must not invalidate the enumeration.
+        foreach (var pair in VisualOwners) VisualFrameOwners.Add(pair);
+        try
         {
-            var lease = pair.Value;
-            if (lease.Monitor != __instance.MonitorIndex) continue;
-            if (pair.Key == null || !pair.Key.gameObject.activeInHierarchy || Traverse.Create(pair.Key).Field("EndFlag").GetValue<bool>())
-            { RestoreVisualLease(pair.Key); VisualOwners.Remove(pair.Key); continue; }
-            var payload = lease.Payload;
-            var live = ResetVisualValue(lease.Live); var guide = ResetVisualValue(lease.Guide);
-            if (timeline != null && timeline.Streams.TryGetValue(payload.Stream, out var changes))
+            foreach (var pair in VisualFrameOwners)
             {
-                VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note, null, live);
-                if (payload.Note.Family == "slide") VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note, "slidestar", guide);
+                var lease = pair.Value;
+                if (lease.Monitor != __instance.MonitorIndex) continue;
+                if (pair.Key == null || !pair.Key.gameObject.activeInHierarchy ||
+                    (pair.Key is NoteBase note ? VisualNoteEnded(note) : VisualSlideEnded((SlideRoot)pair.Key)))
+                { RestoreVisualLease(pair.Key); VisualOwners.Remove(pair.Key); continue; }
+                var payload = lease.Payload;
+                var live = ResetVisualValue(lease.Live); var guide = ResetVisualValue(lease.Guide);
+                if (timeline != null && timeline.Streams.TryGetValue(payload.Stream, out var changes))
+                {
+                    VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note, null, live);
+                    if (payload.Note.Family == "slide") VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note, "slidestar", guide);
+                }
+                foreach (var part in lease.Parts)
+                    ApplyVisualPart(part, part.Guide ? guide : live, part.Guide ? payload.Note.Guide : payload.Note.Base);
             }
-            foreach (var part in lease.Parts)
-                ApplyVisualPart(part, part.Guide ? guide : live, part.Guide ? payload.Note.Guide : payload.Note.Base);
         }
+        finally { VisualFrameOwners.Clear(); }
     }
 
     private static VisualValue ResetVisualValue(VisualValue value)

@@ -28,17 +28,16 @@ public static partial class ExtraDifficulty
         var path = music.notesData[difficulty]?.file?.path;
         if (string.IsNullOrEmpty(path) || SinmaiAlpha.Notes.ChartFeatureGate.IsA000(path)) return null;
         var chart = FileSystem.ResolvePath(path);
-        var marker = Path.ChangeExtension(chart, ".ExtraDifficulty.flag");
-        if (!File.Exists(marker) && difficulty == Master) marker = Path.Combine(Path.GetDirectoryName(chart), MarkerFileName);
-        return ReadLevelFlags(marker);
+        return ReadLevelFlags(chart, difficulty);
     }
-    private static ChartFlags ReadLevelFlags(string marker)
+    private static ChartFlags ReadLevelFlags(string chart, int difficulty)
     {
-        if (LevelFlags.TryGetValue(marker, out var flags)) return flags;
-        try { flags = File.Exists(marker) ? ChartFlags.Parse(File.ReadAllText(marker)) : null; }
+        var key = chart + "|" + difficulty;
+        if (LevelFlags.TryGetValue(key, out var flags)) return flags;
+        try { flags = ChartMetadata.Read(chart, difficulty, message => MelonLogger.Warning("[CustomLevelText] " + message)); }
         catch (Exception e) when (e is IOException || e is UnauthorizedAccessException)
         { MelonLogger.Warning("[CustomLevelText] " + e.Message); }
-        LevelFlags[marker] = flags; return flags;
+        LevelFlags[key] = flags; return flags;
     }
     private static void BindLevelText(object owner, int difficulty, bool utage, DifficultyTheme theme)
     {

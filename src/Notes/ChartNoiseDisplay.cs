@@ -356,40 +356,80 @@ public partial class CustomNoteTypes
 		int num6 = Mathf.Clamp(Mathf.CeilToInt(num3), 0, width);
 		int num7 = Mathf.Clamp(Mathf.FloorToInt(num2), 0, height);
 		int num8 = Mathf.Clamp(Mathf.CeilToInt(num4), 0, height);
-		for (int i = num7; i < num8; i++)
-		{
-			for (int j = num5; j < num6; j++)
-			{
-				if (pixels[i * width + j] != 0)
-				{
-					continue;
-				}
-				UnityEngine.Vector2 vector3 = new UnityEngine.Vector2((float)j + 0.5f, (float)i + 0.5f);
-				bool flag = false;
-				bool flag2 = false;
-				for (int k = 0; k < projected.Count; k++)
-				{
-					UnityEngine.Vector2 vector4 = projected[k];
-					UnityEngine.Vector2 vector5 = projected[(k + 1) % projected.Count];
-					float num9 = (vector5.x - vector4.x) * (vector3.y - vector4.y) - (vector5.y - vector4.y) * (vector3.x - vector4.x);
-					flag |= num9 > 1E-05f;
-					flag2 |= num9 < -1E-05f;
-					if (flag & flag2)
-					{
-						break;
-					}
-				}
-				if (!(flag & flag2))
-				{
-					pixels[i * width + j] = byte.MaxValue;
-					if (stylePixels != null)
-					{
-						stylePixels[i * width + j] = styles[sensor].Color;
-					}
-				}
-			}
-		}
-	}
+        // All reference cells and their growth clips are convex. Intersect the
+        // half-planes once per scanline instead of testing every pixel/edge.
+        // Boundary candidates still use the original float/epsilon predicate.
+        double area = 0;
+        for (int i = 0; i < projected.Count; i++)
+        {
+            var a = projected[i]; var b = projected[(i + 1) % projected.Count];
+            area += (double)a.x * b.y - (double)b.x * a.y;
+        }
+        var direction = area >= 0 ? 1 : -1;
+        Color32 color = styles[sensor].Color;
+        for (int y = num7; y < num8; y++)
+        {
+            int left = num5, right = num6 - 1;
+            if (Math.Abs(area) > .01)
+            {
+                double low = num5 + .5, high = num6 - .5;
+                bool outside = false;
+                for (int k = 0; k < projected.Count; k++)
+                {
+                    var a = projected[k]; var b = projected[(k + 1) % projected.Count];
+                    float dx = b.x - a.x, dy = b.y - a.y;
+                    float row = dx * (y + .5f - a.y);
+                    if (dy == 0)
+                    {
+                        if (row * direction < -1E-05f) { outside = true; break; }
+                        continue;
+                    }
+                    double edge = a.x + ((double)row + direction * 1E-05f) / dy;
+                    if (-dy * direction > 0) low = Math.Max(low, edge);
+                    else high = Math.Min(high, edge);
+                }
+                if (outside) continue;
+                // Guard rounding at projected edges, then trim with the exact
+                // old predicate. The interior of a convex row needs no tests.
+                left = (int)Math.Max(num5, Math.Min(num6, Math.Ceiling(low - .5) - 2));
+                right = (int)Math.Max(num5 - 1, Math.Min(num6 - 1, Math.Floor(high - .5) + 2));
+                while (left <= right && !InsideProjected(left, y)) left++;
+                while (right >= left && !InsideProjected(right, y)) right--;
+                var end = y * width + right;
+                for (var index = y * width + left; index <= end; index++)
+                {
+                    if (pixels[index] != 0) continue;
+                    pixels[index] = 255;
+                    if (stylePixels != null) stylePixels[index] = color;
+                }
+            }
+            else
+            {
+                // Collapsed/near-degenerate cells retain the previous rule.
+                for (int x = left; x <= right; x++)
+                {
+                    int index = y * width + x;
+                    if (pixels[index] != 0 || !InsideProjected(x, y)) continue;
+                    pixels[index] = 255;
+                    if (stylePixels != null) stylePixels[index] = color;
+                }
+            }
+        }
+    }
+
+    private bool InsideProjected(int x, int y)
+    {
+        bool positive = false, negative = false;
+        var point = new Vector2(x + .5f, y + .5f);
+        for (int k = 0; k < projected.Count; k++)
+        {
+            var a = projected[k]; var b = projected[(k + 1) % projected.Count];
+            float cross = (b.x - a.x) * (point.y - a.y) - (b.y - a.y) * (point.x - a.x);
+            positive |= cross > 1E-05f; negative |= cross < -1E-05f;
+            if (positive && negative) return false;
+        }
+        return true;
+    }
 
         public void Clear()
         {
@@ -595,6 +635,24 @@ public partial class CustomNoteTypes
 
         private void SpreadStyles()
         {
+            // With one visible color, every nearest-cell result is the same.
+            // Avoid a full breadth-first flood for ordinary monochrome zones.
+            bool found = false, uniform = true;
+            Color32 color = default;
+            for (var i = 0; i < maskBytes.Length; i++)
+            {
+                if (maskBytes[i] == 0) continue;
+                var next = stylePixels[i];
+                if (!found) { color = next; found = true; }
+                else if (color.r != next.r || color.g != next.g || color.b != next.b || color.a != next.a)
+                { uniform = false; break; }
+            }
+            if (!found) return;
+            if (uniform)
+            {
+                for (var i = 0; i < stylePixels.Length; i++) stylePixels[i] = color;
+                return;
+            }
             var head = 0; var tail = 0;
             for (var i=0;i<maskBytes.Length;i++) { styleDistance[i] = maskBytes[i] == 0 ? -1 : 0; if(maskBytes[i]!=0) styleQueue[tail++]=i; }
             while(head<tail) {

@@ -7,6 +7,7 @@ using MelonLoader;
 using Monitor;
 using Monitor.Game;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using Object = UnityEngine.Object;
 
 namespace SinmaiAlpha.Notes;
@@ -53,6 +54,13 @@ public sealed partial class ChartFrameMotion
     private readonly List<Renderer> isolationRenderers = new();
     private readonly List<Canvas> isolationCanvases = new();
     private readonly Stack<LayerLease> spareLayerLeases = new();
+    private readonly Stack<ScreenClipLease> spareScreenClipLeases = new();
+    private readonly Stack<IsolatedFrame> spareIsolatedFrames = new();
+    private readonly List<GameObject> collisionRoots = new();
+    private readonly List<Renderer> collisionRenderers = new();
+    private readonly List<Canvas> collisionCanvases = new();
+    private readonly List<Renderer> screenClipRenderers = new();
+    private GameObject persistentSceneAnchor;
     private readonly MaterialPropertyBlock screenClipProperties = new();
     private readonly Vector3[] isolationCorners = new Vector3[4];
     private Camera isolationCamera, leasedSourceCamera;
@@ -74,12 +82,54 @@ public sealed partial class ChartFrameMotion
     private bool HasLayerCollision()
     {
         if (isolationLayers.Count == 0) return false;
-        // All our previous leases have already been restored. A new visible
-        // renderer/Canvas on a reserved bit therefore belongs to another mod.
-        foreach (var renderer in Object.FindObjectsOfType<Renderer>())
-            if (renderer != null && isolationLayers.Contains(renderer.gameObject.layer)) return true;
-        foreach (var canvas in Object.FindObjectsOfType<Canvas>())
-            if (canvas != null && isolationLayers.Contains(canvas.gameObject.layer)) return true;
+        // Unity 2018 FindObjectsOfType allocates and sorts the whole scene on
+        // every render. Walk loaded roots into reusable lists instead. Still
+        // inspect EVERY frame: another mod can activate/change a layer between
+        // frames, so caching the answer for several frames is not safe.
+        if (persistentSceneAnchor == null)
+        {
+            persistentSceneAnchor = new GameObject("ChartFrameSceneAnchor") { hideFlags = HideFlags.HideAndDontSave };
+            Object.DontDestroyOnLoad(persistentSceneAnchor);
+        }
+        try
+        {
+            // Very flat scenes are faster through Unity's global query than
+            // thousands of separate native hierarchy calls. Native game pools
+            // have few roots and many inactive descendants, taking the fast
+            // reusable-list path below.
+            var roots = persistentSceneAnchor.scene.rootCount;
+            for (var i = 0; i < SceneManager.sceneCount; i++) roots += SceneManager.GetSceneAt(i).rootCount;
+            if (roots > 128)
+            {
+                foreach (var renderer in Object.FindObjectsOfType<Renderer>())
+                    if (renderer != null && isolationLayers.Contains(renderer.gameObject.layer)) return true;
+                foreach (var canvas in Object.FindObjectsOfType<Canvas>())
+                    if (canvas != null && isolationLayers.Contains(canvas.gameObject.layer)) return true;
+                return false;
+            }
+            for (var i = 0; i < SceneManager.sceneCount; i++)
+                if (SceneHasLayerCollision(SceneManager.GetSceneAt(i))) return true;
+            // DontDestroyOnLoad is not part of SceneManager's ordinary list.
+            return SceneHasLayerCollision(persistentSceneAnchor.scene);
+        }
+        finally { collisionRoots.Clear(); collisionRenderers.Clear(); collisionCanvases.Clear(); }
+    }
+    private bool SceneHasLayerCollision(Scene scene)
+    {
+        if (!scene.IsValid() || !scene.isLoaded) return false;
+        collisionRoots.Clear();
+        if (collisionRoots.Capacity <= scene.rootCount) collisionRoots.Capacity = scene.rootCount + 1;
+        scene.GetRootGameObjects(collisionRoots);
+        foreach (var root in collisionRoots)
+        {
+            if (root == null || !root.activeInHierarchy) continue;
+            collisionRenderers.Clear(); root.GetComponentsInChildren(false, collisionRenderers);
+            foreach (var renderer in collisionRenderers)
+                if (renderer != null && isolationLayers.Contains(renderer.gameObject.layer)) return true;
+            collisionCanvases.Clear(); root.GetComponentsInChildren(false, collisionCanvases);
+            foreach (var canvas in collisionCanvases)
+                if (canvas != null && isolationLayers.Contains(canvas.gameObject.layer)) return true;
+        }
         return false;
     }
     internal static MonitorBackgroundTownController NativeBackgroundFor(GameMonitor owner)
@@ -111,7 +161,8 @@ public sealed partial class ChartFrameMotion
     private void LeaseScreenClips(GameObject background, PresentationRect viewport)
     {
         if (background == null) return;
-        foreach (var renderer in background.GetComponentsInChildren<Renderer>(true))
+        screenClipRenderers.Clear(); background.GetComponentsInChildren(true, screenClipRenderers);
+        foreach (var renderer in screenClipRenderers)
         {
             // The bundled cross-version reference assembly predates this 1.70
             // component. Resolve its real native component by name at runtime.
@@ -124,8 +175,9 @@ public sealed partial class ChartFrameMotion
             // Native SetScreenClipsX writes both floats on initialized sprites.
             // Empty/uninitialized or intentionally hidden ranges stay native.
             if (float.IsNaN(min) || float.IsNaN(max) || float.IsInfinity(min) || float.IsInfinity(max) || max <= min) continue;
-            var lease = new ScreenClipLease { Owner = renderer, Min = min, Max = max,
-                AppliedMin = (min - viewport.X) / viewport.Width, AppliedMax = (max - viewport.X) / viewport.Width };
+            var lease = spareScreenClipLeases.Count == 0 ? new ScreenClipLease() : spareScreenClipLeases.Pop();
+            lease.Owner = renderer; lease.Min = min; lease.Max = max;
+            lease.AppliedMin = (min - viewport.X) / viewport.Width; lease.AppliedMax = (max - viewport.X) / viewport.Width;
             screenClipLeases.Add(lease);
             screenClipProperties.SetFloat(ClipMinX, lease.AppliedMin); screenClipProperties.SetFloat(ClipMaxX, lease.AppliedMax);
             renderer.SetPropertyBlock(screenClipProperties);
@@ -133,21 +185,22 @@ public sealed partial class ChartFrameMotion
     }
     private bool TryIsolationCrop(GameObject background, PresentationRect bounds, int width, int height, out FrameViewportCrop crop)
     {
-        if (background != null)
-            foreach (var renderer in background.GetComponentsInChildren<Renderer>(true))
-            {
-                if (renderer == null || renderer.GetComponent("ScreenClipSetter") == null) continue;
-                renderer.GetPropertyBlock(screenClipProperties);
-                var min = screenClipProperties.GetFloat(ClipMinX); var max = screenClipProperties.GetFloat(ClipMaxX);
-                if (float.IsNaN(min) || float.IsNaN(max) || float.IsInfinity(min) || float.IsInfinity(max) || max <= min) continue;
-                // Native projected-coordinate clip comparisons can round in
-                // opposite directions at a source pixel center after cropping.
-                // Keep the original projection for fractional native clip
-                // edges (e.g. half of an odd-width target), retaining the exact
-                // source shader coordinates and the same final visible bounds.
-                if (!ClipPixelAligned(min, width) || !ClipPixelAligned(max, width))
-                    return FrameViewportCrop.TryCreateFull(bounds, width, height, out crop);
-            }
+        screenClipRenderers.Clear();
+        if (background != null) background.GetComponentsInChildren(true, screenClipRenderers);
+        foreach (var renderer in screenClipRenderers)
+        {
+            if (renderer == null || renderer.GetComponent("ScreenClipSetter") == null) continue;
+            renderer.GetPropertyBlock(screenClipProperties);
+            var min = screenClipProperties.GetFloat(ClipMinX); var max = screenClipProperties.GetFloat(ClipMaxX);
+            if (float.IsNaN(min) || float.IsNaN(max) || float.IsInfinity(min) || float.IsInfinity(max) || max <= min) continue;
+            // Native projected-coordinate clip comparisons can round in
+            // opposite directions at a source pixel center after cropping.
+            // Keep the original projection for fractional native clip
+            // edges (e.g. half of an odd-width target), retaining the exact
+            // source shader coordinates and the same final visible bounds.
+            if (!ClipPixelAligned(min, width) || !ClipPixelAligned(max, width))
+                return FrameViewportCrop.TryCreateFull(bounds, width, height, out crop);
+        }
         return FrameViewportCrop.TryCreate(bounds, width, height, out crop);
     }
     private static bool ClipPixelAligned(float edge, int width)
@@ -167,7 +220,9 @@ public sealed partial class ChartFrameMotion
             if (restoreMax) screenClipProperties.SetFloat(ClipMaxX, lease.Max);
             if (restoreMin || restoreMax) lease.Owner.SetPropertyBlock(screenClipProperties);
         }
+        foreach (var lease in screenClipLeases) { lease.Owner = null; spareScreenClipLeases.Push(lease); }
         screenClipLeases.Clear();
+        screenClipRenderers.Clear();
     }
     private void LeaseLayer(GameObject owner, int layer, int cameraMask)
     {
@@ -258,7 +313,9 @@ public sealed partial class ChartFrameMotion
                 // frame to be alpha-blended a second time during the copy.
                 var samples = source.targetTexture != null ? source.targetTexture.antiAliasing : source.allowMSAA ? Math.Max(1, QualitySettings.antiAliasing) : 1;
                 var texture = RenderTexture.GetTemporary(crop.Width, crop.Height, 24, RenderTextureFormat.RGB111110Float, RenderTextureReadWrite.Default, samples);
-                isolatedFrames.Add(new IsolatedFrame { Bounds = bounds, Texture = texture, TextureUv = crop.TextureUv });
+                var isolated = spareIsolatedFrames.Count == 0 ? new IsolatedFrame() : spareIsolatedFrames.Pop();
+                isolated.Bounds = bounds; isolated.Texture = texture; isolated.TextureUv = crop.TextureUv;
+                isolatedFrames.Add(isolated);
                 isolationCamera.CopyFrom(source); isolationCamera.enabled = false;
                 isolationCamera.transform.position = source.transform.position; isolationCamera.transform.rotation = source.transform.rotation;
                 isolationCamera.targetTexture = texture;
@@ -270,7 +327,7 @@ public sealed partial class ChartFrameMotion
                 // when the native GUI texture copy composites it. Common native
                 // backgrounds still render; other monitor roots are excluded.
                 isolationCamera.clearFlags = CameraClearFlags.SolidColor; isolationCamera.backgroundColor = Color.black;
-                try { LeaseScreenClips(surface.Background, crop.ProjectionViewport); isolationCamera.Render(); }
+                try { LeaseScreenClips(surface.Background, crop.ProjectionViewport); RenderIsolationCamera(); }
                 finally { RestoreScreenClips(); }
             }
             leasedSourceCamera = source;
@@ -280,6 +337,8 @@ public sealed partial class ChartFrameMotion
         }
         finally { isolationCamera.targetTexture = null; renderingIsolation = false; RenderTexture.active = previous; }
     }
+    [System.Runtime.CompilerServices.MethodImpl(System.Runtime.CompilerServices.MethodImplOptions.NoInlining)]
+    private void RenderIsolationCamera() => isolationCamera.Render();
     private bool FailIsolation(string reason)
     {
         RestoreIsolation(true);
@@ -298,7 +357,11 @@ public sealed partial class ChartFrameMotion
         }
         isolationLeases.Clear();
         if (!releaseTextures) return;
-        foreach (var frame in isolatedFrames) if (frame.Texture != null) RenderTexture.ReleaseTemporary(frame.Texture);
+        foreach (var frame in isolatedFrames)
+        {
+            if (frame.Texture != null) RenderTexture.ReleaseTemporary(frame.Texture);
+            frame.Texture = null; spareIsolatedFrames.Push(frame);
+        }
         isolatedFrames.Clear();
     }
     private void ReleaseIsolation()
@@ -307,6 +370,8 @@ public sealed partial class ChartFrameMotion
         isolationLayers.Clear(); isolationSurfaces.Clear(); isolationSurfacesDirty = true;
         if (isolationCamera != null) Object.Destroy(isolationCamera.gameObject);
         isolationCamera = null; isolationWarning = false;
+        if (persistentSceneAnchor != null) Object.Destroy(persistentSceneAnchor);
+        persistentSceneAnchor = null;
     }
     internal bool HasIsolatedFrames => isolatedFrames.Count != 0;
     internal void CompositeIsolation(RenderTexture source, RenderTexture destination)

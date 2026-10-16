@@ -169,6 +169,11 @@ public partial class CustomNoteTypes
         }
     }
 
+    // Fan overrides NoteCheck and never runs the base postfix in manual play.
+    [HarmonyPostfix]
+    [HarmonyPatch(typeof(SlideFan), "NoteCheck")]
+    public static void MineFanAutoJudgePostfix(SlideFan __instance) => MineSlideAutoJudgePostfix(__instance);
+
     /// <summary>地雷 hold/touchhold 视作 autoplay（自动按住到尾部，不碰=按住到底判 CP）。</summary>
     public static bool IsAutoPlayOrMineHold(object instance)
     {

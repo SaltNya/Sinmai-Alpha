@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Xml;
 
 namespace SinmaiAlpha.Assets;
 
@@ -46,4 +47,37 @@ public sealed class ChartFlags
         return Theme + Environment.NewLine + (lines.Count == 0 ? "" : string.Join(Environment.NewLine, lines) + Environment.NewLine);
     }
     public string WithTheme(string theme) => theme + Environment.NewLine + (options.Count == 0 ? "" : string.Join(Environment.NewLine, options) + Environment.NewLine);
+
+    public static ChartFlags FromXml(XmlNode node)
+    {
+        var flags = new ChartFlags();
+        flags.Theme = node.SelectSingleNode("Difficulty")?.InnerText.Trim() ?? "None";
+        if (flags.Theme.Length == 0) flags.Theme = "None";
+        if (bool.TryParse(node.SelectSingleNode("AllowTapInHold")?.InnerText.Trim(), out var allowed))
+        { flags.HasTapInHoldOverride = true; flags.AllowTapInHold = allowed; }
+        flags.CustomLevelText = bool.TryParse(node.SelectSingleNode("CustomLevelText")?.InnerText.Trim(), out var custom) && custom;
+        flags.LevelText = node.SelectSingleNode("LevelText")?.InnerText;
+        var legacy = node.SelectSingleNode("LegacyOptions")?.InnerText;
+        if (!string.IsNullOrEmpty(legacy)) flags.options.AddRange(legacy.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries));
+        return flags;
+    }
+
+    public void WriteXml(XmlElement node)
+    {
+        SetXml(node, "Difficulty", string.IsNullOrWhiteSpace(Theme) ? "None" : Theme);
+        SetXml(node, "AllowTapInHold", HasTapInHoldOverride ? (AllowTapInHold ? "true" : "false") : null);
+        SetXml(node, "CustomLevelText", CustomLevelText ? "true" : "false");
+        SetXml(node, "LevelText", LevelText);
+        var unknown = options.Where(line => !new[] { "Difficulty", "AllowTapInHold", "CustomLevelText", "LevelText" }
+            .Contains(line.Trim().Split(new[] { '=' }, 2)[0].Trim(), StringComparer.OrdinalIgnoreCase)).ToArray();
+        SetXml(node, "LegacyOptions", unknown.Length == 0 ? null : string.Join(Environment.NewLine, unknown));
+    }
+
+    private static void SetXml(XmlElement parent, string name, string value)
+    {
+        var node = parent.SelectSingleNode(name);
+        if (value == null) { if (node != null) parent.RemoveChild(node); return; }
+        if (node == null) node = parent.AppendChild(parent.OwnerDocument.CreateElement(name));
+        node.InnerText = value;
+    }
 }

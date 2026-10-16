@@ -1,6 +1,6 @@
 bin/
 obj/
-Libs/
+/Libs/
 dist/
 artifacts/
 *.user

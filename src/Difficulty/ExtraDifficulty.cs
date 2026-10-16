@@ -81,14 +81,13 @@ public static partial class ExtraDifficulty
             var chartKey = FileSystem.ResolvePath(chartPath);
             var cacheKey = chartKey + "|" + difficulty;
             if (Markers.TryGetValue(cacheKey, out var marked)) return marked;
-            var marker = Path.ChangeExtension(chartKey, ".ExtraDifficulty.flag");
-            if (!File.Exists(marker) && difficulty == Master) marker = Path.Combine(folder, MarkerFileName);
             marked = Theme.None;
-            if (File.Exists(marker))
+            var flags = ChartMetadata.Read(chartKey, difficulty, message => MelonLogger.Warning("[ExtraDifficulty] " + message));
+            if (flags != null)
             {
-                var value = ChartFlags.Parse(File.ReadAllText(marker)).Theme;
+                var value = flags.Theme;
                 marked=DifficultyThemeCatalog.Resolve(Themes,value);
-                if(marked==null && !value.Equals("None",StringComparison.OrdinalIgnoreCase))MelonLogger.Warning("[ExtraDifficulty] Unknown theme in "+marker+": "+value+"; native appearance retained");
+                if(marked==null && !value.Equals("None",StringComparison.OrdinalIgnoreCase))MelonLogger.Warning("[ExtraDifficulty] Unknown theme for "+chartKey+": "+value+"; native appearance retained");
             }
             Markers[cacheKey] = marked;
             return marked;

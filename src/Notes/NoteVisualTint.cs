@@ -44,11 +44,8 @@ public partial class CustomNoteTypes
             GrayVisualPixels(original.Pixels, pixels);
             var texture = new Texture2D(original.Width, original.Height, TextureFormat.RGBA32, false)
                 { name = "AquaMai Borrowed Mine", wrapMode = TextureWrapMode.Clamp };
-            texture.SetPixels32(pixels); texture.Apply(false, false);
-            var pivot = new Vector2(source.pivot.x / source.rect.width, source.pivot.y / source.rect.height);
-            var sprite = Sprite.Create(texture, new Rect(0, 0, original.Width, original.Height), pivot,
-                source.pixelsPerUnit, 0, SpriteMeshType.Tight, source.border);
-            CopyVisualSpriteGeometry(sprite, source);
+            texture.SetPixels32(pixels);
+            var sprite = CreateVisualTintGeometry(texture, source);
             texture.Apply(false, true);
             BorrowedGraySprites[source] = sprite; return sprite;
         }
@@ -73,11 +70,8 @@ public partial class CustomNoteTypes
             TintVisualPixels(original.Pixels, pixels, rgb, keyColor);
             var texture = new Texture2D(original.Width, original.Height, TextureFormat.RGBA32, false)
                 { name = "AquaMai Note Tint", filterMode = source.texture.filterMode, wrapMode = TextureWrapMode.Clamp };
-            texture.SetPixels32(pixels); texture.Apply(false, false);
-            var pivot = new Vector2(source.pivot.x / source.rect.width, source.pivot.y / source.rect.height);
-            var sprite = Sprite.Create(texture, new Rect(0, 0, original.Width, original.Height), pivot,
-                source.pixelsPerUnit, 0, SpriteMeshType.Tight, source.border);
-            CopyVisualSpriteGeometry(sprite, source);
+            texture.SetPixels32(pixels);
+            var sprite = CreateVisualTintGeometry(texture, source);
             texture.Apply(false, true);
             sprite.name = source.name + " AquaMai " + rgb.ToString("X6");
             VisualTintSprites.Add(key, sprite);
@@ -91,6 +85,25 @@ public partial class CustomNoteTypes
             return source;
         }
     }
+    private static Sprite CreateVisualTintGeometry(Texture2D texture, Sprite source)
+    {
+        var pivot = new Vector2(source.pivot.x / source.rect.width, source.pivot.y / source.rect.height);
+        var rect = new Rect(0, 0, texture.width, texture.height);
+        var sprite = Sprite.Create(texture, rect, pivot, source.pixelsPerUnit, 0, SpriteMeshType.FullRect, source.border);
+        // Unity 2018 forbids OverrideGeometry on FullRect sprites. Use this fast
+        // path only when the rectangle already matches the exact source mesh.
+        var vertices = sprite.vertices; var sourceVertices = source.vertices;
+        var triangles = sprite.triangles; var sourceTriangles = source.triangles;
+        var matches = vertices.Length == sourceVertices.Length && triangles.Length == sourceTriangles.Length;
+        for (var i = 0; matches && i < vertices.Length; i++) matches = vertices[i].Equals(sourceVertices[i]);
+        for (var i = 0; matches && i < triangles.Length; i++) matches = triangles[i] == sourceTriangles[i];
+        if (matches) return sprite;
+        Object.Destroy(sprite);
+        sprite = Sprite.Create(texture, rect, pivot, source.pixelsPerUnit, 0, SpriteMeshType.Tight, source.border);
+        CopyVisualSpriteGeometry(sprite, source);
+        return sprite;
+    }
+
     private static float VisualSmooth(float low, float high, float value)
     {
         var t = Mathf.Clamp01((value - low) / (high - low)); return t * t * (3 - 2 * t);
