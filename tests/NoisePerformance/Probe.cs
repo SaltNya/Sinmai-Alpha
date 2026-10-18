@@ -102,6 +102,9 @@ public class NoisePerfProbe:MelonMod
   }
 
   // Compare multicolor nearest-style propagation, including alpha differences.
+  // This fixture replaces mask/style arrays directly, outside Prepare's
+  // owner-validated uniform fast path. Exercise the general propagation path.
+  Set(compositor,"uniformStyleFill",false);
   for(int c=0;c<100;c++){
    int w=31,h=23;var masks=new byte[w*h];var styles=new Color32[w*h];
    for(int i=0;i<masks.Length;i++)if(random.Next(12)==0){masks[i]=255;styles[i]=c%3==0?new Color32(5,9,70,80):new Color32((byte)random.Next(256),(byte)random.Next(256),(byte)random.Next(256),(byte)random.Next(256));}

@@ -105,10 +105,16 @@ public partial class CustomNoteTypes
             if (!captured) { capturedCamera = null; capturedFrame = -1; return; }
             Update(); fieldAtRender = Display.FieldMatrix; capturedCamera = camera; capturedFrame = Time.frameCount;
         }
+        // Same eligibility as TryDraw, exposed before allocating/copying the
+        // frame. Keep each owner's captured camera and input lease unchanged.
+        internal bool CanDraw(Camera camera)
+            => Ready && captured && capturedCamera == camera && Display.HasActive;
+        internal bool CanDraw(Camera camera, PresentationRect bounds, PresentationRect visible)
+            => CanDraw(camera) && bounds.HasArea && visible.HasArea;
         internal bool TryDraw(RenderTexture source, RenderTexture destination, Camera camera,
             PresentationRect bounds, PresentationRect visible, PresentationRect playfield)
         {
-            if (!Ready || !captured || capturedCamera != camera || !Display.HasActive || !bounds.HasArea || !visible.HasArea) return false;
+            if (!CanDraw(camera, bounds, visible)) return false;
             var previous = RenderTexture.active;
             try
             {

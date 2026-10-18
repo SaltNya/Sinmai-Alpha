@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net472</TargetFramework><LangVersion>latest</LangVersion><NuGetAudit>false</NuGetAudit></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Notes/SlideEndWaitCompatibility.cs" Link="SlideEndWaitCompatibility.cs" />
+    <Reference Include="0Harmony"><HintPath>../../Libs/0Harmony.dll</HintPath></Reference>
+    <Reference Include="Mono.Cecil"><HintPath>../../Libs/Mono.Cecil.dll</HintPath></Reference>
+    <Reference Include="MonoMod.Utils"><HintPath>../../Libs/MonoMod.Utils.dll</HintPath></Reference>
+    <Reference Include="MonoMod.RuntimeDetour"><HintPath>../../Libs/MonoMod.RuntimeDetour.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

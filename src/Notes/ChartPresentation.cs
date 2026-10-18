@@ -472,6 +472,22 @@ public sealed class ChartShakeCamera : MonoBehaviour
     }
     private static Rect Pixels(PresentationRect rect, int width, int height)
         => new(rect.X * width, (1 - rect.Top) * height, rect.Width * width, rect.Height * height);
+    private bool TryGetNoiseArea(GameMonitor owner, Frame frame, Camera camera,
+        out PresentationRect bounds, out PresentationRect visible)
+    {
+        bounds = visible = default;
+        if (camera == null || owner == null || frame.Noise == null || frame.Playfield == null || frame.Bounds == null ||
+            !frame.Bounds.gameObject.activeInHierarchy || !frame.Noise.CanDraw(camera)) return false;
+        bounds = Bounds(frame, camera);
+        visible = bounds.Intersect(new PresentationRect(0, 0, 1, 1));
+        return bounds.HasArea && visible.HasArea;
+    }
+    private bool HasDrawableNoise(Camera camera)
+    {
+        foreach (var pair in frames)
+            if (TryGetNoiseArea(pair.Key, pair.Value, camera, out _, out _)) return true;
+        return false;
+    }
     private void OnRenderImage(RenderTexture source, RenderTexture destination)
     {
         var previous = RenderTexture.active;
@@ -481,22 +497,22 @@ public sealed class ChartShakeCamera : MonoBehaviour
         var finalDestination = destination;
         try
         {
-            // Unity supplies null for the last image effect targeting the
-            // screen. Preserve a readable filtered frame for the later noise
-            // pass instead of trying to sample the screen as a texture.
-            if (destination == null && frames.Values.Any(frame => frame.Noise != null && frame.Noise.Ready))
-            {
-                screenFrame = RenderTexture.GetTemporary(source.width, source.height, 0, source.format, RenderTextureReadWrite.Linear);
-                destination = screenFrame;
-            }
+            var camera = GetComponent<Camera>();
             var motion = GetComponent<ChartFrameMotion>();
             if (motion != null && motion.HasIsolatedFrames)
             {
                 isolated = RenderTexture.GetTemporary(source.width, source.height, 0, source.format);
                 motion.CompositeIsolation(source, isolated); source = isolated;
             }
+            // Project after isolation, as in the final noise pass. Unity's
+            // null screen target needs a readable intermediate only when a
+            // captured, active field can actually be composited this frame.
+            if (destination == null && HasDrawableNoise(camera))
+            {
+                screenFrame = RenderTexture.GetTemporary(source.width, source.height, 0, source.format, RenderTextureReadWrite.Linear);
+                destination = screenFrame;
+            }
             Graphics.Blit(source, destination);
-            var camera = GetComponent<Camera>();
             if (camera == null) return;
             var milliseconds = NotesManager.GetCurrentMsec();
             foreach (var pair in frames)
@@ -565,10 +581,7 @@ public sealed class ChartShakeCamera : MonoBehaviour
                 foreach (var pair in frames)
                 {
                     var frame = pair.Value;
-                    if (pair.Key == null || frame.Noise == null || frame.Playfield == null || frame.Bounds == null || !frame.Bounds.gameObject.activeInHierarchy) continue;
-                    var bounds = Bounds(frame, camera);
-                    var visible = bounds.Intersect(new PresentationRect(0, 0, 1, 1));
-                    if (!bounds.HasArea || !visible.HasArea) continue;
+                    if (!TryGetNoiseArea(pair.Key, frame, camera, out var bounds, out var visible)) continue;
                     if (noiseSource == null) noiseSource = RenderTexture.GetTemporary(source.width, source.height, 0, source.format, RenderTextureReadWrite.Linear);
                     Graphics.Blit(destination, noiseSource);
                     var playfield = Bounds(frame.Playfield, frame.Corners, camera);

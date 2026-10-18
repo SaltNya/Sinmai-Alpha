@@ -1,0 +1,29 @@
+using System; using System.Collections.Generic; using System.Linq; using UnityEngine;
+public struct PresentationRect {
+ public float X,Y,Width,Height; public PresentationRect(float x,float y,float w,float h){X=x;Y=y;Width=w;Height=h;}
+ public bool HasArea=>Width>0&&Height>0;
+}
+public struct TestStyle {public Color Color;public Vector2 Size;}
+public sealed class TestTimeline {
+ public double[] Starts=new double[33],Ends=new double[33];public bool[] Selected=new bool[33];
+ public void Configure(object source){}
+ public bool TryGetVisualSpan(int i,double t,out double start,out double end){start=Starts[i];end=Ends[i];return Selected[i];}
+ public bool TryGetActiveSpan(int i,double t,out double start,out double end){start=Starts[i];end=Ends[i];return Selected[i]&&t>=start&&t<end;}
+}
+public sealed class FakeTexture {
+ public int PixelUploads,ByteUploads,Applies;
+ public void SetPixels32(Color32[] values){PixelUploads++;}
+ public void LoadRawTextureData(byte[] values){ByteUploads++;}
+ public void Apply(bool updateMipmaps=false){Applies++;}
+}
+namespace UnityEngine {
+ public struct Vector2 {public float x,y;public Vector2(float x,float y){this.x=x;this.y=y;}}
+ public struct Vector3 {public float x,y,z;public Vector3(float x,float y,float z){this.x=x;this.y=y;this.z=z;}}
+ public struct Color {public float r,g,b,a;public Color(float r,float g,float b,float a){this.r=r;this.g=g;this.b=b;this.a=a;}}
+ public struct Color32 {public byte r,g,b,a;public Color32(byte r,byte g,byte b,byte a){this.r=r;this.g=g;this.b=b;this.a=a;}
+  public static implicit operator Color32(Color c)=>new Color32((byte)Math.Clamp((int)MathF.Round(c.r*255),0,255),(byte)Math.Clamp((int)MathF.Round(c.g*255),0,255),(byte)Math.Clamp((int)MathF.Round(c.b*255),0,255),(byte)Math.Clamp((int)MathF.Round(c.a*255),0,255));
+ }
+ public struct Matrix4x4 {public float SX,SY,TX,TY;public Vector3 MultiplyPoint3x4(Vector3 p)=>new Vector3(p.x*SX+TX,p.y*SY+TY,p.z);}
+ public sealed class Camera {public float SX=1,SY=1,TX,TY;public Matrix4x4 worldToCameraMatrix,projectionMatrix;public Vector3 WorldToViewportPoint(Vector3 p)=>new Vector3(p.x*SX+TX,p.y*SY+TY,p.z);}
+ public static class Mathf {public static float Min(float a,float b)=>MathF.Min(a,b);public static float Max(float a,float b)=>MathF.Max(a,b);public static int FloorToInt(float v)=>(int)MathF.Floor(v);public static int CeilToInt(float v)=>(int)MathF.Ceiling(v);public static int Clamp(int v,int l,int h)=>Math.Clamp(v,l,h);}
+}
