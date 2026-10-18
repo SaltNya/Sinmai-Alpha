@@ -358,10 +358,11 @@ public partial class CustomNoteTypes
             var reader = NotesManager.Instance(___monitorIndex).getReader();
             if (!PresentationTimelines.TryGetValue(reader, out var timeline) ||
                 !timeline.Tracks.TryGetValue("innerbrightness", out var inner)) return;
-            // UpdateMovie has just computed this frame's native option opacity
-            // and opening fade. Compose once here, never from our previous result.
+            // Explicit chart values are absolute black-cover opacity (Majdata):
+            // 0 fully bright, 1 fully dark. Default/no command follows the native
+            // option and opening fade computed by UpdateMovie this frame.
             var color = ____movieMaskSprite.color;
-            color.a = PresentationViewportMath.MovieCoverAlpha(color.a, inner.EvaluatePlayerBrightness(NotesManager.GetCurrentMsec(), 0));
+            color.a = PresentationViewportMath.CoverAlpha(inner.EvaluatePlayerBrightness(NotesManager.GetCurrentMsec(), color.a));
             ____movieMaskSprite.color = color;
         }
     }

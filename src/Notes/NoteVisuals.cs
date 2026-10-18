@@ -19,7 +19,7 @@ public partial class CustomNoteTypes
 {
     private sealed class VisualPayload { public VisualNote Note; public string Stream; public MajdataRegularPath SlideGeometry; }
     private sealed class VisualTimeline { public readonly Dictionary<string, List<VisualChange>> Streams = new(); }
-    private sealed class VisualPart { public SpriteRenderer Native; public bool Guide, Mine, Hint; }
+    private sealed class VisualPart { public SpriteRenderer Native; public bool Guide, Mine, Hint, AlphaOnly; }
     private sealed class VisualLease
     {
         public int Monitor;
@@ -48,6 +48,8 @@ public partial class CustomNoteTypes
     private static readonly AccessTools.FieldRef<SlideRoot, bool> VisualSlideEnded = AccessTools.FieldRefAccess<SlideRoot, bool>("EndFlag");
     private static readonly Dictionary<SpriteRenderer, VisualOverlay> VisualOverlays = new();
     private static readonly HashSet<SpriteRenderer> VisualOverlayRenderers = new();
+    private static readonly AccessTools.FieldRef<NoteGuide, SpriteRenderer> VisualHintLine = AccessTools.FieldRefAccess<NoteGuide, SpriteRenderer>("_spriteRender");
+    private static readonly AccessTools.FieldRef<NoteGuide, SpriteRenderer> VisualEachLine = AccessTools.FieldRefAccess<NoteGuide, SpriteRenderer>("_spriteEachRender");
     private static List<(int Bar, int Grid, string Kind, string Text)> PendingVisualCommands => RuntimeCharts.Current.PendingVisualCommands;
     private static string pendingVisualMarker { get => RuntimeCharts.Current.pendingVisualMarker; set => RuntimeCharts.Current.pendingVisualMarker = value; }
 
@@ -110,17 +112,20 @@ public partial class CustomNoteTypes
         if (!(CustomNoteTypes.FeaturesEnabled(__instance))) {  return; }
 
         var timeline = new VisualTimeline();
+        var zero = new NotesTime(); zero.init(0, 0, __instance);
         foreach (var cmd in PendingVisualCommands)
         {
-            var scope = ""; var text = cmd.Text; var separator = text.IndexOf('~');
+            var time = new NotesTime(); time.init(cmd.Bar, cmd.Grid, __instance);
+            var text = cmd.Text;
+            var exactTime = PreciseTiming.Decode(ref text, time.msec, zero.msec);
+            var scope = ""; var separator = text.IndexOf('~');
             if (separator >= 0)
             {
                 scope = text.Substring(0, separator);
                 if (!IsStreamType(scope)) continue;
                 text = text.Substring(separator + 1);
             }
-            var time = new NotesTime(); time.init(cmd.Bar, cmd.Grid, __instance);
-            if (!VisualState.TryParse(cmd.Kind, text, time.msec, out var changes))
+            if (!VisualState.TryParse(cmd.Kind, text, exactTime, out var changes))
             { MelonLogger.Warning("[Note Visual] Invalid " + cmd.Kind + ": " + text); continue; }
             if (!timeline.Streams.TryGetValue(scope, out var list)) timeline.Streams[scope] = list = new List<VisualChange>();
             list.AddRange(changes);
@@ -134,7 +139,29 @@ public partial class CustomNoteTypes
     {
         if (!VisualOwners.TryGetValue(owner, out var lease)) return;
         foreach (var part in lease.Parts)
-            if (part.Native != null && VisualOverlays.TryGetValue(part.Native, out var overlay)) overlay.Restore();
+            if (part.Native != null && (!part.Hint || owner != null && part.Native.transform.IsChildOf(owner.transform)) &&
+                VisualOverlays.TryGetValue(part.Native, out var overlay)) overlay.Restore();
+    }
+
+    // Guides have their own pool and can be reassigned before the previous
+    // note's visual lease is collected. Restore them at the pool boundary.
+    [HarmonyPatch]
+    public static class RestorePooledGuideVisualPatch
+    {
+        public static IEnumerable<MethodBase> TargetMethods() => new[]
+        {
+            AccessTools.Method(typeof(NoteGuide), "Initialize"), AccessTools.Method(typeof(NoteGuide), "ReturnToBase")
+        };
+        [HarmonyPrefix]
+        public static void Prefix(NoteGuide __instance)
+        {
+            void Restore(SpriteRenderer sprite)
+            {
+                if (sprite != null && VisualOverlays.TryGetValue(sprite, out var overlay)) overlay.Restore();
+            }
+            Restore(VisualHintLine(__instance));
+            Restore(VisualEachLine(__instance));
+        }
     }
 
     [HarmonyPatch]
@@ -193,7 +220,10 @@ public partial class CustomNoteTypes
                     if (sprite != debug && sprite.GetComponentInParent<NoteGuide>() == null) Add(sprite);
                 foreach (var hint in __instance.GetComponentsInChildren<NoteGuide>(true))
                 {
-                    var line = Traverse.Create(hint).Field("_spriteEachRender").GetValue<SpriteRenderer>();
+                    var radial = VisualHintLine(hint);
+                    if (radial != null && seen.Add(radial))
+                        lease.Parts.Add(new VisualPart { Native = radial, Hint = true, AlphaOnly = true });
+                    var line = VisualEachLine(hint);
                     if (line != null && seen.Add(line))
                         lease.Parts.Add(new VisualPart { Native = line, Hint = true });
                 }
@@ -207,7 +237,7 @@ public partial class CustomNoteTypes
         var native = part.Native;
         if (native == null || !native.enabled || !native.gameObject.activeInHierarchy || native.sprite == null) return;
         var progress = IsTouchProgressMaterial(native);
-        var color = progress ? live.Color : live.Color ?? baseline.Color;
+        var color = part.AlphaOnly ? null : progress ? live.Color : live.Color ?? baseline.Color;
         var alpha = progress ? live.Alpha : live.Alpha ?? baseline.Alpha;
         var x = part.Hint ? null : live.X ?? baseline.X; var y = part.Hint ? null : live.Y ?? baseline.Y;
         if (!color.HasValue && !alpha.HasValue && !x.HasValue) return;
@@ -280,7 +310,10 @@ public partial class CustomNoteTypes
                     if (payload.Note.Family == "slide") VisualState.Resolve(changes, NotesManager.GetCurrentMsec(), payload.Note, "slidestar", guide);
                 }
                 foreach (var part in lease.Parts)
+                {
+                    if (part.Hint && (part.Native == null || !part.Native.transform.IsChildOf(pair.Key.transform))) continue;
                     ApplyVisualPart(part, part.Guide ? guide : live, part.Guide ? payload.Note.Guide : payload.Note.Base);
+                }
             }
         }
         finally { VisualFrameOwners.Clear(); }

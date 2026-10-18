@@ -205,13 +205,14 @@ public partial class CustomNoteTypes
         Dictionary<string, List<(float Msec, float Mult)>> curves,
         Dictionary<string, List<float>> clearTimes = null)
     {
+        var zero = new NotesTime(); zero.init(0, 0, reader);
         foreach (var seg in pending)
         {
             var time = new NotesTime();
             time.init(seg.Bar, seg.Grid, reader);
-            var msec = time.msec;
-            var bpm = reader.GetBPM_Time(msec);
             var text = seg.Text;
+            var msec = (float)SinmaiAlpha.ChartVisuals.PreciseTiming.Decode(ref text, time.msec, zero.msec);
+            var bpm = reader.GetBPM_Time(msec);
             if (text.Contains('='))
             {
                 foreach (var pair in text.Split(','))
@@ -251,7 +252,7 @@ public partial class CustomNoteTypes
             list.Clear(); list.AddRange(ordered);
             for (var i = list.Count - 1; i > 0; i--)
             {
-                if (System.Math.Abs(list[i].Msec - list[i - 1].Msec) < 0.5f)
+                if (list[i].Msec == list[i - 1].Msec)
                 {
                     list.RemoveAt(i - 1);
                 }
@@ -373,7 +374,7 @@ public partial class CustomNoteTypes
         var uniq = new List<float>();
         foreach (var t in times)
         {
-            if (uniq.Count == 0 || System.Math.Abs(uniq[uniq.Count - 1] - t) > 0.5f)
+            if (uniq.Count == 0 || uniq[uniq.Count - 1] != t)
                 uniq.Add(t);
         }
 
@@ -384,14 +385,14 @@ public partial class CustomNoteTypes
             var isClear = false;
             for (var i = 0; i < clearList.Count; i++)
             {
-                if (System.Math.Abs(clearList[i] - t) < 0.5f) { isClear = true; break; }
+                if (clearList[i] == t) { isClear = true; break; }
             }
 
             var typeAt = false;
             var typeValue = 1f;
             for (var i = 0; i < typed.Count; i++)
             {
-                if (System.Math.Abs(typed[i].Msec - t) < 0.5f) { typeAt = true; typeValue = typed[i].Mult; break; }
+                if (typed[i].Msec == t) { typeAt = true; typeValue = typed[i].Mult; break; }
             }
 
             if (isClear)
@@ -464,13 +465,13 @@ public partial class CustomNoteTypes
 
     /// <summary>∫[0→msec] sv(τ)dτ（按音符类型有效曲线，二分查询预计算累计）。
     /// scroll 单调（sv 非负时）——负 SV 段递减由积分自然体现。</summary>
-    private static float SvIntegral(string type, float msec)
+    private static float SvIntegral(string type, double msec)
     {
         var key = !string.IsNullOrEmpty(type) && SvCumCurves.ContainsKey(type) ? type : "";
         // 流类型键：本流无积分表 = 流内无 SV 曲线 → ∫=t 恒等原速（绝不回退全局表）。
-        if (IsStreamType(type) && !SvCumCurves.ContainsKey(type)) return msec;
-        if (!SvCumCurves.TryGetValue(key, out var cum) || cum.Count == 0) return msec;
-        if (msec <= cum[0].Item1) return msec; // 第一段前倍率 1：∫=t
+        if (IsStreamType(type) && !SvCumCurves.ContainsKey(type)) return (float)msec;
+        if (!SvCumCurves.TryGetValue(key, out var cum) || cum.Count == 0) return (float)msec;
+        if (msec <= cum[0].Item1) return (float)msec; // 第一段前倍率 1：∫=t
         var lo = 0;
         var hi = cum.Count - 1;
         while (lo < hi - 1)
@@ -481,7 +482,7 @@ public partial class CustomNoteTypes
         }
 
         if (cum[hi].Item1 <= msec) lo = hi;
-        return cum[lo].Item3 + cum[lo].Item2 * (msec - cum[lo].Item1);
+        return (float)(cum[lo].Item3 + cum[lo].Item2 * (msec - cum[lo].Item1));
     }
 
     /// <summary>构建音符自包含飞行时间表：[(msec, scroll, max前缀)]，覆盖
@@ -505,8 +506,8 @@ public partial class CustomNoteTypes
                 foreach (var p in cc)
                     if (p.Msec > tStart && p.Msec < tEnd)
                         raw.Add((p.Msec, p.Cum));
-            raw.Add((note.time.msec, scrollPos));
-            if (note.end != null) raw.Add((note.end.msec, tailSp));
+            raw.Add((note.time.msec, NoteSvIntegral(index, type, note.time.msec)));
+            if (note.end != null) raw.Add((note.end.msec, NoteSvIntegral(index, type, note.end.msec)));
             raw.Sort((a, b) => a.Msec.CompareTo(b.Msec));
             var table = new List<(float Msec, float Scroll, float Max)>(raw.Count);
             var mx = float.MinValue;
@@ -534,11 +535,13 @@ public partial class CustomNoteTypes
     /// 倍率恒定故 scroll 线性；表覆盖 [T−Cover, T+Len]，界外钳制到边界值）。
     /// 无表（谱面无变速且恒速检测已短路）→ 恒等 t。</summary>
     private static HashSet<int> IgnoreSvByNoteIndex => RuntimeCharts.Current.IgnoreSvByNoteIndex;
-    private static float NoteSvIntegral(int index, string type, float msec)
-        => IgnoreSvByNoteIndex.Contains(index) ? msec : SvIntegral(type, msec);
+    private static float NoteSvIntegral(int index, string type, double msec)
+        => IgnoreSvByNoteIndex.Contains(index) ? (float)msec : SvIntegral(type, msec);
 
     private static float GetNoteScroll(int index, float msec)
     {
+        if (RuntimeCharts.Current.PreciseVisualNotes.Contains(index) && SvTypeByNoteIndex.TryGetValue(index, out var preciseType))
+            return NoteSvIntegral(index, preciseType, msec);
         List<(float Msec, float Scroll, float Max)> table;
         if (!NoteScrollTableByNoteIndex.TryGetValue(index, out table) || table.Count == 0) return msec;
         if (msec <= table[0].Msec) return NoteSvIntegral(index, SvTypeByNoteIndex[index], msec);

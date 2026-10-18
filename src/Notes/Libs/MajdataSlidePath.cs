@@ -110,7 +110,7 @@ public sealed class MajdataSlidePath
             : pathExpression;
         var match = Regex.Match(
             source,
-            @"^(?<start>(?:[1-8]d?|[ABDE][1-8]|C[12]?))[bxfm!?]*(?<segments>(?:(?:pp|qq|rp|rq|V[1-8]d?|[PQ](?:[0-9]|[ABDE][1-8]|C[12]?)|<+|>+|[-^vVwWsqzp])(?:[1-8]d?|[ABDE][1-8]|C[12]?)[bxfm]*)+)$",
+            @"^(?<start>(?:[1-8]d?|[ABDE][1-8]|C[12]?))[bxfm!?]*(?<segments>(?:(?:pp|qq|rp|rq|V(?:[1-8]d?|[ABDE][1-8]|C[12]?)|[PQ](?:[0-9]|[ABDE][1-8]|C[12]?)|<+|>+|[-^vVwWsqzp])(?:[1-8]d?|[ABDE][1-8]|C[12]?)[bxfm]*)+)$",
             RegexOptions.CultureInvariant);
         if (!match.Success)
             return false;
@@ -118,7 +118,7 @@ public sealed class MajdataSlidePath
         var current = ParseAreaPosition(match.Groups["start"].Value);
         var segments = Regex.Matches(
             match.Groups["segments"].Value,
-            @"(?<shape>pp|qq|rp|rq|V[1-8]d?|[PQ](?:[0-9]|[ABDE][1-8]|C[12]?)|<+|>+|[-^vVwWsqzp])(?<end>(?:[1-8]d?|[ABDE][1-8]|C[12]?))[bxfm]*",
+            @"(?<shape>pp|qq|rp|rq|V(?:[1-8]d?|[ABDE][1-8]|C[12]?)|[PQ](?:[0-9]|[ABDE][1-8]|C[12]?)|<+|>+|[-^vVwWsqzp])(?<end>(?:[1-8]d?|[ABDE][1-8]|C[12]?))[bxfm]*",
             RegexOptions.CultureInvariant);
         foreach (Match segment in segments)
         {
@@ -184,10 +184,9 @@ public sealed class MajdataSlidePath
         }
         if (alpha053 && (segmentShape.Length == 2 || segmentShape.Length == 3) && segmentShape[0] == 'V')
         {
-            var middle = segmentShape[1] - '0';
-            var middleD = segmentShape.EndsWith("d", StringComparison.Ordinal);
-            AppendSegment(segmentStartArea, segmentStartPosition, segmentStartIsDZone, 'K', middle, middleD, "-");
-            AppendSegment('K', middle, middleD, segmentEndArea, segmentEndPosition, segmentEndIsDZone, "-");
+            var middle = ParseAreaPosition(segmentShape.Substring(1));
+            AppendSegment(segmentStartArea, segmentStartPosition, segmentStartIsDZone, middle.Area, middle.Position, middle.IsDZone, "-");
+            AppendSegment(middle.Area, middle.Position, middle.IsDZone, segmentEndArea, segmentEndPosition, segmentEndIsDZone, "-");
             return;
         }
         if (segmentShape == "-")

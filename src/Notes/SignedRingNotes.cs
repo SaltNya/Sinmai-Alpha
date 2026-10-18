@@ -67,7 +67,7 @@ public partial class CustomNoteTypes
         var speed = (ReferenceMotionByNoteIndex.Contains(index) ? RingViewSpeed(duration) * .001f : SpawnRadiusSpan / duration) * hs;
         var everCrossed = settings.Once && RingEverCrossed(owner, tail, target, speed, settings, now);
         presentation = ScrollVisualTiming.Ring(target, GetNoteScroll(index, now), speed, settings.Spawn, settings.Destroy, everCrossed);
-        if ((owner is HoldNote || owner is BreakHoldNote) && now >= (tail ? (float)FTailMsec.GetValue(owner) : appear) && presentation.Running)
+        if ((owner is HoldNote || owner is BreakHoldNote) && now >= (tail ? (float)FTailMsec.GetValue(owner) : appear))
             presentation = new ScrollVisualTiming.Presentation(settings.Destroy, 1, true);
         return true;
     }
@@ -178,7 +178,7 @@ public partial class CustomNoteTypes
                     var tailObject = fields.Field("EndPointObj").GetValue<GameObject>();
                     var tail = TryRingPresentation(__instance, true, out var value) ? value : head;
                     var tailY = RingNativeY(__instance, tail.Radius);
-                    var hasBody = head.Running && NotesManager.GetCurrentMsec() < (float)FTailMsec.GetValue(__instance);
+                    var hasBody = NotesManager.GetCurrentMsec() < (float)FTailMsec.GetValue(__instance);
                     var height = hasBody ? Math.Abs(y - tailY) + 140f : 140f;
                     if (hasBody) { orientation = y >= tailY ? 1 : -1; position.y = (y + tailY) * .5f; }
                     else position.y = y;

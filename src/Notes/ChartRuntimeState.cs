@@ -13,6 +13,7 @@ public partial class CustomNoteTypes
         public ChartRuntimeState() { }
         public bool Enabled;
         public bool Classified;
+        public readonly HashSet<int> PreciseVisualNotes = new();
         public readonly Dictionary<NoteData, float> NoteSpeedMultipliers = new Dictionary<NoteData, float>();
         public readonly Dictionary<int, float> NoteSpeedByIndex = new Dictionary<int, float>();
         public readonly Queue<float> PendingNoteSpeedMultipliers = new Queue<float>();

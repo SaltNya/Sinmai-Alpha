@@ -39,18 +39,28 @@ namespace SinmaiAlpha.ChartVisuals
         public bool IgnoreSV; // Authored c: keep HS, but use elapsed time instead of SV scroll.
         public int SlideAppearance; // 0=native/legacy SC, 1=SlideDrop, 2=TouchSlideDrop
         public string ReferenceSlide; // Geometry/moving-star presentation only; never a playable judge route.
+        public double? ExactHeadMsec, ExactTailMsec;
         public VisualValue Base = new VisualValue(), Guide = new VisualValue();
         public string Encode() => "VS|" + Family + "|" + ((Each ? 1 : 0) | (Break ? 2 : 0) | (Mine ? 4 : 0) |
             (ReferenceMotion ? 8 : 0) | (SlideAppearance << 4) | (IgnoreSV ? 64 : 0)) + "|" + Base.Encode() + "|" + Guide.Encode() +
-            (string.IsNullOrEmpty(ReferenceSlide) ? "" : "|" + ReferenceSlide);
+            (ExactHeadMsec.HasValue ? "|" + (ReferenceSlide ?? "") + "|" + ExactHeadMsec.Value.ToString("R", CultureInfo.InvariantCulture) +
+                "|" + (ExactTailMsec ?? ExactHeadMsec.Value).ToString("R", CultureInfo.InvariantCulture) :
+                string.IsNullOrEmpty(ReferenceSlide) ? "" : "|" + ReferenceSlide);
         public static VisualNote Decode(string text)
         {
             var p = text.Split('|');
-            if ((p.Length != 9 && p.Length != 10) || p[0] != "VS") throw new FormatException("Invalid visual note metadata");
+            if ((p.Length != 9 && p.Length != 10 && p.Length != 12) || p[0] != "VS") throw new FormatException("Invalid visual note metadata");
             var flags = int.Parse(p[2], CultureInfo.InvariantCulture);
+            if (p.Length == 12)
+                for (var i = 10; i < 12; i++)
+                    if (!double.TryParse(p[i], NumberStyles.Float, CultureInfo.InvariantCulture, out var time) ||
+                        double.IsNaN(time) || double.IsInfinity(time))
+                        throw new FormatException("Invalid precise note time");
             return new VisualNote { Family = p[1], Each = (flags & 1) != 0, Break = (flags & 2) != 0, Mine = (flags & 4) != 0,
                 ReferenceMotion = (flags & 8) != 0, SlideAppearance = (flags >> 4) & 3, IgnoreSV = (flags & 64) != 0,
-                Base = VisualValue.Decode(p, 3), Guide = VisualValue.Decode(p, 6), ReferenceSlide = p.Length == 10 ? p[9] : null };
+                Base = VisualValue.Decode(p, 3), Guide = VisualValue.Decode(p, 6), ReferenceSlide = p.Length >= 10 ? p[9] : null,
+                ExactHeadMsec = p.Length == 12 ? (double?)double.Parse(p[10], CultureInfo.InvariantCulture) : null,
+                ExactTailMsec = p.Length == 12 ? (double?)double.Parse(p[11], CultureInfo.InvariantCulture) : null };
         }
     }
 

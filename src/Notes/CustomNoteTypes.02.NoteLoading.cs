@@ -416,6 +416,8 @@ public partial class CustomNoteTypes
             case "NMSSS":
             case "BRSSS":
                 var noteData = new CustomSlideNoteData();
+                var previousNoteIndex = noteIndex;
+                var previousSlideIndex = slideIndex;
                 var mirrorMode = Singleton<GamePlayManager>.Instance.GetGameScore(____playerID).UserOption.MirrorMode;
                 PrepareBasicNoteData(noteData, __instance, rec, index, ref noteIndex, mirrorMode);
                 PrepareBasicSlideData(noteData, __instance, rec, noteIndex, ref slideIndex, mirrorMode);
@@ -436,6 +438,10 @@ public partial class CustomNoteTypes
                 }
                 else
                 {
+                    // A rejected geometry did not add a note. Do not leave holes
+                    // in the index space used by CreateResult and slide pools.
+                    noteIndex = previousNoteIndex;
+                    slideIndex = previousSlideIndex;
                     flag = false;
                 }
                 break;

@@ -37,6 +37,8 @@ public partial class CustomNoteTypes
             BuildSpeedCurves(__instance, PendingSvSegments, SvCurves, SvClearTimes);
             BuildSpeedCurves(__instance, PendingHsSegments, HsCurves, HsClearTimes);
             BuildSvCumulatives();
+            var visualZero = new NotesTime(); visualZero.init(0, 0, __instance);
+            RuntimeCharts.Current.PreciseVisualNotes.Clear();
 
             var svCount = SvCurves.Values.Sum(x => x.Count);
             var hsCount = HsCurves.Values.Sum(x => x.Count);
@@ -72,7 +74,11 @@ public partial class CustomNoteTypes
                         SvTypeByNoteIndex[note.indexNote] = type;
                         if (SpeedClass(note).IgnoreSV) IgnoreSvByNoteIndex.Add(note.indexNote);
                         var mHs = ResolvePlayableHs(note);
-                        var scrollPos = NoteSvIntegral(note.indexNote, type, note.time.msec);
+                        var classification = SpeedClass(note);
+                        if (classification.ExactHeadMsec.HasValue) RuntimeCharts.Current.PreciseVisualNotes.Add(note.indexNote);
+                        var visualHead = classification.ExactHeadMsec.HasValue
+                            ? classification.ExactHeadMsec.Value + visualZero.msec : note.time.msec;
+                        var scrollPos = NoteSvIntegral(note.indexNote, type, visualHead);
                         SvScrollPosByNoteIndex[note.indexNote] = scrollPos;
                         // 等效流速只由 HS 决定（MV：speed = noteSpeed×HS；SV 只进 scroll 积分，
                         // 不缩放每音符下落/渐入/激活）——若乘 mSv，SV 段后的音符（如重叠流
@@ -85,7 +91,9 @@ public partial class CustomNoteTypes
                         var tailSp = 0f;
                         if (note.end != null)
                         {
-                            SvTailScrollPosByNoteIndex[note.indexNote] = NoteSvIntegral(note.indexNote, type, note.end.msec);
+                            var visualTail = classification.ExactTailMsec.HasValue
+                                ? classification.ExactTailMsec.Value + visualZero.msec : note.end.msec;
+                            SvTailScrollPosByNoteIndex[note.indexNote] = NoteSvIntegral(note.indexNote, type, visualTail);
                             tailSp = SvTailScrollPosByNoteIndex[note.indexNote];
                         }
                         // 每音符自包含飞行时间表（加载期一次算好）：
