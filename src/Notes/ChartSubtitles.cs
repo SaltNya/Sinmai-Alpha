@@ -122,10 +122,9 @@ public sealed class ReferenceSubtitleDisplay : MonoBehaviour
             text.font = font; text.text = ev.Text; text.fontSize = ev.Size > 0 ? ev.Size : 32;
             text.fontStyle = string.IsNullOrEmpty(ev.Font) || ev.Font.Equals("Default", StringComparison.OrdinalIgnoreCase)
                 ? TMPro.FontStyles.Bold : TMPro.FontStyles.Normal;
-            text.alignment = TMPro.TextAlignmentOptions.Center; text.enableWordWrapping = true;
+            text.alignment = TMPro.TextAlignmentOptions.TopLeft; text.enableWordWrapping = true;
             text.richText = false; text.raycastTarget = false;
-            var rect = text.rectTransform; rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
-            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            PlaceLabel(text.rectTransform, ev);
             // Generate glyph meshes at chart binding, not the event's first frame.
             text.ForceMeshUpdate(); text.enabled = false;
             labels[ev] = new Label { Event = ev, Text = text };
@@ -152,9 +151,19 @@ public sealed class ReferenceSubtitleDisplay : MonoBehaviour
             var value = typewriter ? SubtitleCommands.TypewriterText(ev.Text, elapsed, Mathf.Max(0, ev.Transition)) : ev.Text;
             if (label.Text.text != value) label.Text.text = value;
             label.Text.color = new Color(1, 1, 1, !typewriter && ev.Transition > 0 ? Mathf.Clamp01(elapsed / ev.Transition) : 1);
-            label.Text.rectTransform.anchoredPosition = new Vector2(ev.X * root.rect.width, -ev.Y * root.rect.height);
+            PlaceLabel(label.Text.rectTransform, ev);
             label.Text.enabled = true; previous.Add(label);
         }
+    }
+    private void PlaceLabel(RectTransform rect, SubtitleChange ev)
+    {
+        // Majdata's TEXT coordinates originate at the play area's top-left.
+        // Retain its inset and remaining-area wrapping bounds when resized.
+        rect.anchorMin = rect.anchorMax = new Vector2(ev.X, 1f - ev.Y);
+        rect.pivot = new Vector2(0, 1);
+        rect.anchoredPosition = new Vector2(20, -20);
+        rect.sizeDelta = new Vector2(Mathf.Max(50, root.rect.width * (1f - ev.X) - 40),
+            Mathf.Max(100, root.rect.height * (1f - ev.Y) - 40));
     }
     private void ClearLabels()
     {

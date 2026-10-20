@@ -46,6 +46,10 @@ public sealed partial class ChartFrameMotion
     private static readonly int ClipMinX = Shader.PropertyToID("_ClipMinX");
     private static readonly int ClipMaxX = Shader.PropertyToID("_ClipMaxX");
     private static readonly HashSet<int> ReservedIsolationLayers = new();
+    private static readonly Dictionary<GameMonitor, CommonMonitor> NativeBackgroundOwners = new();
+    // Resolve the native 1.70-only type once; GetComponent(string) performs a
+    // name lookup even on every renderer which has no clip component.
+    private static readonly Type ScreenClipType = AccessTools.TypeByName("ScreenClipSetter");
     private readonly List<int> isolationLayers = new();
     private readonly List<IsolationSurface> isolationSurfaces = new();
     private readonly Dictionary<GameObject, LayerLease> isolationLeases = new();
@@ -60,6 +64,9 @@ public sealed partial class ChartFrameMotion
     private readonly List<Renderer> collisionRenderers = new();
     private readonly List<Canvas> collisionCanvases = new();
     private readonly List<Renderer> screenClipRenderers = new();
+    private readonly List<Renderer> screenClipComponents = new();
+    private GameObject screenClipBackground;
+    private bool screenClipsCollected;
     private GameObject persistentSceneAnchor;
     private readonly MaterialPropertyBlock screenClipProperties = new();
     private readonly Vector3[] isolationCorners = new Vector3[4];
@@ -135,11 +142,19 @@ public sealed partial class ChartFrameMotion
     internal static MonitorBackgroundTownController NativeBackgroundFor(GameMonitor owner)
     {
         if (owner == null) return null;
+        if (NativeBackgroundOwners.TryGetValue(owner, out var cached) && cached != null &&
+            cached.gameObject.activeInHierarchy && cached.MonitorIndex == owner.MonitorIndex)
+            return Traverse.Create(cached).Field("_backgroundController").GetValue<MonitorBackgroundTownController>();
+        NativeBackgroundOwners.Remove(owner);
         foreach (var common in Object.FindObjectsOfType<CommonMonitor>())
             if (common != null && common.MonitorIndex == owner.MonitorIndex)
+            {
+                NativeBackgroundOwners[owner] = common;
                 return Traverse.Create(common).Field("_backgroundController").GetValue<MonitorBackgroundTownController>();
+            }
         return null;
     }
+    internal static void ClearNativeBackgroundOwners() => NativeBackgroundOwners.Clear();
     private void DiscoverSurfaces()
     {
         if (!isolationSurfacesDirty) return;
@@ -158,15 +173,31 @@ public sealed partial class ChartFrameMotion
         }
         isolationSurfacesDirty = false;
     }
+    private void CollectScreenClips(GameObject background)
+    {
+        screenClipRenderers.Clear();
+        screenClipBackground = background;
+        screenClipsCollected = true;
+        if (background == null || ScreenClipType == null) return;
+        // Query the rare setter components directly, including inactive ones.
+        // Refresh for each render, so replacement backgrounds and components
+        // added by other mods are seen immediately.
+        foreach (var setter in background.GetComponentsInChildren(ScreenClipType, true))
+        {
+            if (setter == null) continue;
+            screenClipComponents.Clear();
+            setter.GetComponents(screenClipComponents);
+            foreach (var renderer in screenClipComponents)
+                if (renderer != null && !screenClipRenderers.Contains(renderer)) screenClipRenderers.Add(renderer);
+        }
+        screenClipComponents.Clear();
+    }
     private void LeaseScreenClips(GameObject background, PresentationRect viewport)
     {
-        if (background == null) return;
-        screenClipRenderers.Clear(); background.GetComponentsInChildren(true, screenClipRenderers);
+        if (!screenClipsCollected || screenClipBackground != background) CollectScreenClips(background);
         foreach (var renderer in screenClipRenderers)
         {
-            // The bundled cross-version reference assembly predates this 1.70
-            // component. Resolve its real native component by name at runtime.
-            if (renderer == null || renderer.GetComponent("ScreenClipSetter") == null) continue;
+            if (renderer == null) continue;
             var alreadyLeased = false;
             foreach (var previous in screenClipLeases) if (previous.Owner == renderer) { alreadyLeased = true; break; }
             if (alreadyLeased) continue;
@@ -185,11 +216,10 @@ public sealed partial class ChartFrameMotion
     }
     private bool TryIsolationCrop(GameObject background, PresentationRect bounds, int width, int height, out FrameViewportCrop crop)
     {
-        screenClipRenderers.Clear();
-        if (background != null) background.GetComponentsInChildren(true, screenClipRenderers);
+        CollectScreenClips(background);
         foreach (var renderer in screenClipRenderers)
         {
-            if (renderer == null || renderer.GetComponent("ScreenClipSetter") == null) continue;
+            if (renderer == null) continue;
             renderer.GetPropertyBlock(screenClipProperties);
             var min = screenClipProperties.GetFloat(ClipMinX); var max = screenClipProperties.GetFloat(ClipMaxX);
             if (float.IsNaN(min) || float.IsNaN(max) || float.IsInfinity(min) || float.IsInfinity(max) || max <= min) continue;
@@ -223,6 +253,8 @@ public sealed partial class ChartFrameMotion
         foreach (var lease in screenClipLeases) { lease.Owner = null; spareScreenClipLeases.Push(lease); }
         screenClipLeases.Clear();
         screenClipRenderers.Clear();
+        screenClipBackground = null;
+        screenClipsCollected = false;
     }
     private void LeaseLayer(GameObject owner, int layer, int cameraMask)
     {

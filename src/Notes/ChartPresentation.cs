@@ -115,6 +115,18 @@ public partial class CustomNoteTypes
     }
     private static readonly Dictionary<SpriteRenderer, SharedTiledCover> PresentationSharedCovers = new();
     private static readonly HashSet<SpriteRenderer> PresentationCoverCopies = new();
+    private static GameObject presentationMask;
+    private static GameObject PresentationMask
+    {
+        get
+        {
+            // A successful lookup is stable for this game. Unity's destroyed
+            // object check also handles native mask replacement.
+            if (presentationMask == null || !presentationMask.activeInHierarchy || presentationMask.name != "Mask")
+                presentationMask = GameObject.Find("Mask");
+            return presentationMask;
+        }
+    }
 
     private static void ApplySharedOuterCover(GameObject owner, int monitor, float? alpha, PresentationCommands.Track brightness = null)
     {
@@ -285,7 +297,7 @@ public partial class CustomNoteTypes
         MotionCovers.Clear();
         if (move != null || rotate != null || zoom != null)
         {
-            ApplySharedOuterCover(GameObject.Find("Mask"), owner.MonitorIndex, null);
+            ApplySharedOuterCover(PresentationMask, owner.MonitorIndex, null);
             foreach (var cover in PresentationSharedCovers.Values)
                 if (owner.MonitorIndex >= 0 && owner.MonitorIndex < cover.Sides.Length && cover.Sides[owner.MonitorIndex] != null) MotionCovers.Add(cover.Sides[owner.MonitorIndex].transform);
             var background = BackgroundFor(owner, main);
@@ -298,6 +310,8 @@ public partial class CustomNoteTypes
     }
     public static void ReleaseChartPresentation()
     {
+        presentationMask = null;
+        ChartFrameMotion.ClearNativeBackgroundOwners();
         ReleaseWatermarks();
         ResetTouchProgress();
         ResetNoisePresentation();

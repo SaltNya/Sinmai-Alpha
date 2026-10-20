@@ -119,6 +119,10 @@ public static partial class GameplayDiagnostics
                 new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "HasLayerCollision"),
                 new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "LeaseRenderers"),
                 new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "RenderIsolationCamera"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "TryIsolationCrop"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "LeaseScreenClips"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes), "ApplyChartPresentation"),
+                new KeyValuePair<System.Type,string>(typeof(Notes.CustomNoteTypes), "ApplyFrameMotion"),
                 new KeyValuePair<System.Type,string>(typeof(Notes.ChartFrameMotion), "CompositeIsolation") };
             foreach (var target in targets)
                 foreach (var method in target.Key.GetMethods(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly))
