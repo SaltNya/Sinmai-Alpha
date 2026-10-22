@@ -33,7 +33,7 @@ namespace SinmaiAlpha.Artwork
         {
             private static IEnumerable<MethodBase> TargetMethods()
             {
-                foreach (string name in new[] { "GetJacketTexture2D", "GetJacketThumbTexture2D", "GetFrameTexture2D", "GetFrameThumbTexture2D" })
+                foreach (string name in new[] { "GetJacketTexture2D", "GetJacketThumbTexture2D", "GetFrameTexture2D", "GetFrameThumbTexture2D", "GetIconTexture2D", "GetPlateTexture2D" })
                 {
                     MethodInfo method = AccessTools.Method(typeof(AssetManager), name, new[] { typeof(string) });
                     if (method == null || method.ReturnType != typeof(Texture2D)) throw new MissingMethodException("Unsupported AssetManager: " + name + "(string)");
@@ -58,13 +58,15 @@ namespace SinmaiAlpha.Artwork
             string path = null;
             try
             {
-                bool frame = __originalMethod.Name.IndexOf("Frame", StringComparison.Ordinal) >= 0;
-                if (catalog == null || !catalog.TryResolve(__0, frame, out path) || failures.Contains(path)) return;
+                ArtworkKind kind = __originalMethod.Name.IndexOf("Frame", StringComparison.Ordinal) >= 0 ? ArtworkKind.Frame
+                    : __originalMethod.Name == "GetIconTexture2D" ? ArtworkKind.Icon
+                    : __originalMethod.Name == "GetPlateTexture2D" ? ArtworkKind.NamePlate : ArtworkKind.Jacket;
+                if (catalog == null || !catalog.TryResolve(__0, kind, out path) || failures.Contains(path)) return;
                 Texture2D result;
                 if (LooseAssetIndex.IsAnimated(path))
                 {
                     Texture2D poster = __result;
-                    result = DirectArtworkPlayer.Load(path, frame, () => poster);
+                    result = DirectArtworkPlayer.Load(path, kind == ArtworkKind.Frame, () => poster);
                 }
                 else
                 {

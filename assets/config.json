@@ -12,6 +12,8 @@
     "Enabled": false,
     "EnableJackets": true,
     "EnableFrames": true,
+    "EnableIcons": true,
+    "EnableNamePlates": true,
     "EnableImages": true,
     "EnableGif": true,
     "EnableVideo": true,

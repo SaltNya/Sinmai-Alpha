@@ -56,13 +56,15 @@ namespace SinmaiAlpha.Artwork
             if (Find(key, mediaKind, out path) || Find(stem, mediaKind, out path)) return true;
             bool jacket = stem.StartsWith("ui_jacket_", StringComparison.OrdinalIgnoreCase);
             bool frame = stem.StartsWith("ui_frame_", StringComparison.OrdinalIgnoreCase);
-            if (!jacket && !frame) return false;
+            bool icon = stem.StartsWith("ui_icon_", StringComparison.OrdinalIgnoreCase);
+            bool plate = stem.StartsWith("ui_plate_", StringComparison.OrdinalIgnoreCase);
+            if (!jacket && !frame && !icon && !plate) return false;
             string fullStem = stem.EndsWith("_s", StringComparison.OrdinalIgnoreCase)
                 ? stem.Substring(0, stem.Length - 2) : stem;
-            string category = jacket ? "jacket" : "frame";
+            string category = jacket ? "jacket" : frame ? "frame" : icon ? "icon" : "nameplate";
             if (Find(category + "/" + fullStem, mediaKind, out path) || Find(fullStem, mediaKind, out path)) return true;
-            string id = fullStem.Substring(jacket ? 10 : 9);
-            // Bare numeric files retain AquaMai's jacket meaning. Frame IDs must
+            string id = fullStem.Substring(jacket ? 10 : icon ? 8 : 9);
+            // Bare numeric files retain AquaMai's jacket meaning. Other collection IDs must
             // be scoped so the same number cannot accidentally replace a jacket.
             return Find(category + "/" + id, mediaKind, out path) ||
                 (jacket && Find(id, mediaKind, out path));
