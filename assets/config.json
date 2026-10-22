@@ -7,5 +7,14 @@
   "SinglePlayer": null,
   "HideSubMonitor": false,
   "ShowSssJudgePath": false,
-  "GameplayDiagnostics": false
+  "GameplayDiagnostics": false,
+  "Artwork": {
+    "Enabled": false,
+    "EnableJackets": true,
+    "EnableFrames": true,
+    "EnableImages": true,
+    "EnableGif": true,
+    "EnableVideo": true,
+    "Directory": "LocalAssets"
+  }
 }

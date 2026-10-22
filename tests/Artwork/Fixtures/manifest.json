@@ -1,0 +1,108 @@
+[
+  {
+    "file": "transparent-disposal2.gif",
+    "frames": [
+      {
+        "pixels": "transparent-disposal2-0.rgba",
+        "delay": 0.08
+      },
+      {
+        "pixels": "transparent-disposal2-1.rgba",
+        "delay": 0.13
+      },
+      {
+        "pixels": "transparent-disposal2-2.rgba",
+        "delay": 0.21
+      }
+    ],
+    "width": 32,
+    "height": 24
+  },
+  {
+    "file": "restore-disposal3.gif",
+    "frames": [
+      {
+        "pixels": "restore-disposal3-0.rgba",
+        "delay": 0.04
+      },
+      {
+        "pixels": "restore-disposal3-1.rgba",
+        "delay": 0.07
+      },
+      {
+        "pixels": "restore-disposal3-2.rgba",
+        "delay": 0.11
+      }
+    ],
+    "width": 32,
+    "height": 24
+  },
+  {
+    "file": "keep-disposal1.gif",
+    "frames": [
+      {
+        "pixels": "keep-disposal1-0.rgba",
+        "delay": 0.1
+      },
+      {
+        "pixels": "keep-disposal1-1.rgba",
+        "delay": 0.02
+      },
+      {
+        "pixels": "keep-disposal1-2.rgba",
+        "delay": 0.2
+      }
+    ],
+    "width": 32,
+    "height": 24
+  },
+  {
+    "file": "interlaced-lzw12.gif",
+    "frames": [
+      {
+        "pixels": "interlaced-lzw12-0.rgba",
+        "delay": 0.1
+      }
+    ],
+    "width": 129,
+    "height": 79
+  },
+  {
+    "file": "local-palette.gif",
+    "frames": [
+      {
+        "pixels": "local-palette-0.rgba",
+        "delay": 0.1
+      },
+      {
+        "pixels": "local-palette-1.rgba",
+        "delay": 0.2
+      },
+      {
+        "pixels": "local-palette-2.rgba",
+        "delay": 0.3
+      }
+    ],
+    "width": 25,
+    "height": 23
+  },
+  {
+    "file": "jacket-smoke.gif",
+    "frames": [
+      {
+        "pixels": "jacket-smoke-0.rgba",
+        "delay": 0.2
+      },
+      {
+        "pixels": "jacket-smoke-1.rgba",
+        "delay": 0.3
+      },
+      {
+        "pixels": "jacket-smoke-2.rgba",
+        "delay": 0.4
+      }
+    ],
+    "width": 96,
+    "height": 96
+  }
+]

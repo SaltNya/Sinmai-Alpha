@@ -13,7 +13,8 @@ internal static class Program
     private static void Defaults(string name)
     {
         Check(!Settings.Current.GameplayDiagnostics && Settings.Current.ChartFeatures && Settings.Current.ExtraPoolCount == 128 &&
-            Settings.Current.SinglePlayer == null && !Settings.Current.ShowSssJudgePath, name);
+            Settings.Current.SinglePlayer == null && !Settings.Current.ShowSssJudgePath &&
+            Settings.Current.Artwork != null && !Settings.Current.Artwork.Enabled && Settings.Current.Artwork.EnableGif && Settings.Current.Artwork.Directory == "LocalAssets", name);
     }
     public static void Main()
     {
@@ -32,6 +33,16 @@ internal static class Program
             File.WriteAllText(path, "{\"GameplayDiagnostics\":true}", new UTF8Encoding(true)); Settings.Load();
             Check(Settings.Current.GameplayDiagnostics && Settings.Current.ChartFeatures && Settings.Current.ExtraPoolCount == 128 && !Settings.Current.ShowSssJudgePath,
                 "partial config preserves defaults");
+            Check(!Settings.Current.Artwork.Enabled && Settings.Current.Artwork.EnableJackets && Settings.Current.Artwork.EnableFrames,
+                "existing config keeps artwork opt-in");
+            File.WriteAllText(path, "{\"Artwork\":{\"Enabled\":true,\"EnableGif\":false,\"Directory\":\"Art 目录\"}}"); Settings.Load();
+            Check(Settings.Current.Artwork.Enabled && !Settings.Current.Artwork.EnableGif && Settings.Current.Artwork.EnableVideo &&
+                Settings.Current.Artwork.EnableImages && Settings.Current.Artwork.Directory == "Art 目录", "partial artwork object honors values and retains media defaults");
+            foreach (var json in new[] { "{\"Artwork\":null}", "{\"Artwork\":{}}", "{\"Artwork\":{\"Directory\":null}}", "{\"Artwork\":{\"Directory\":\" \"}}" })
+            {
+                File.WriteAllText(path, json); Settings.Load();
+                Check(Settings.Current.Artwork != null && !Settings.Current.Artwork.Enabled && Settings.Current.Artwork.Directory == "LocalAssets", "null/empty artwork uses safe defaults: " + json);
+            }
             foreach (var invalid in new[] { "{invalid", "null", "" })
             {
                 File.WriteAllText(path, Json); Settings.Load();

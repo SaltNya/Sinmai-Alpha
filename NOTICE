@@ -2,3 +2,5 @@ Sinmai-Alpha derives chart runtime and difficulty appearance code from AquaMai (
 Modified and extracted as an independent MelonLoader mod in October 2026.
 Reference chart syntax and rendering adaptations retain upstream notices in the source files.
 Game and Unity assemblies in Libs are local build references and are not distributed.
+Direct Animated Jackets and Frames is adapted from the ReSinmai artwork implementation
+and its standalone mod (GPL-3.0-or-later), contributed by a404for-coder in October 2026.

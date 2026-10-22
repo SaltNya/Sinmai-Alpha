@@ -16,6 +16,22 @@ DLL 位于`/Package/Mods/Sinmai-Alpha.dll`；贴图和特效包位于
 A000 内的谱面始终绕过扩展玩法；其余 MA2 仅在包含自定义音符、扩展字段或有效特效命令时启用。
 纯原版谱不加载自定义音符资源、不分配额外音效通道，也不执行 Alpha 的音符池扩容和判定修改。
 
+### Direct Animated Jackets and Frames（动态曲绘与收藏背景框）
+
+主 DLL 内置曲绘和收藏品 Frame 的 PNG/JPG、GIF 与视频直读，默认关闭。
+在 `Sinmai-Alpha/config.json` 中把 `Artwork.Enabled` 设为 `true` 后重启游戏。
+该功能独立于谱面玩法校验，启用后可替换任意曲绘/Frame，不改变游玩 BGA 或谱面行为。
+GIF 和视频播完从头循环，视频静音；同一文件的大图与缩略图共享播放进度。
+无需另装 `DirectAnimatedJacketsAndFrames.dll`；从独立版迁移时移除它，并在 Alpha 配置中重新设置开关。
+
+例如在游戏目录放入 `LocalAssets/Jacket/UI_Jacket_006072.gif` 或
+`LocalAssets/Frame/UI_Frame_000001.mp4`。也支持
+`StreamingAssets/Axxx/AssetBundleImages/jacket/`、`frame/` 下的同名文件。
+资源 ID 不一定等于歌曲 ID；完整曲绘可以直接用于 `_S` 缩略图。
+支持 GIF、MP4、WebM、MOV、M4V；视频编码能否播放取决于游戏 Unity 和系统解码器。
+
+完整配置、覆盖顺序和文件布局见 [动态曲绘说明](docs/DirectAnimatedJacketsAndFrames.md)。
+
 ### 难度和模式和等级外观
 
 - 难度：

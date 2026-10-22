@@ -21,9 +21,12 @@ namespace SinmaiAlpha.Hosting
         [DataMember] public bool HideSubMonitor = false;
         [DataMember] public bool ShowSssJudgePath = false;
         [DataMember] public bool GameplayDiagnostics = false;
+        [DataMember] public Artwork.ArtworkSettings Artwork = new Artwork.ArtworkSettings();
         public static Settings Current { get; private set; } = new Settings();
         [OnDeserializing] private void Defaults(StreamingContext context)
-        { ChartFeatures = ExtraDifficulty = ShowMineHitFeedback = true; MineVolume = .7f; ExtraPoolCount = 128; ShowSssJudgePath = GameplayDiagnostics = false; }
+        { ChartFeatures = ExtraDifficulty = ShowMineHitFeedback = true; MineVolume = .7f; ExtraPoolCount = 128; ShowSssJudgePath = GameplayDiagnostics = false; Artwork = new Artwork.ArtworkSettings(); }
+        [OnDeserialized] private void Validate(StreamingContext context)
+        { if (Artwork == null) Artwork = new Artwork.ArtworkSettings(); }
         public static void Load()
         {
             Current = new Settings();

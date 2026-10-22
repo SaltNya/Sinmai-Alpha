@@ -30,6 +30,7 @@ namespace SinmaiAlpha
             var roots = new List<Type> { typeof(Difficulty.AlphaRights), typeof(Difficulty.ExtraMode) };
             if (settings.ChartFeatures) roots.AddRange(new[] { typeof(Notes.CustomNoteTypes), typeof(Notes.ExtendNotesPool), typeof(Notes.ReviveFinaleVSlide), typeof(Notes.TapInHoldFix) });
             if (settings.ExtraDifficulty) roots.Add(typeof(Difficulty.ExtraDifficulty));
+            if (settings.Artwork.Enabled) roots.Add(typeof(Artwork.DirectArtwork));
             if (Hosting.GameplayDiagnostics.Enabled) { Hosting.GameplayDiagnostics.Start(); roots.Add(typeof(Hosting.GameplayDiagnostics)); }
             var count = 0;
             try
@@ -41,11 +42,16 @@ namespace SinmaiAlpha
             catch (Exception error)
             {
                 HarmonyInstance.UnpatchSelf();
+                Artwork.DirectArtwork.Shutdown();
                 MelonLogger.Error("[Sinmai-Alpha] Initialization failed: " + error);
                 throw;
             }
         }
-        public override void OnDeinitializeMelon() => Hosting.GameplayDiagnostics.Stop();
+        public override void OnDeinitializeMelon()
+        {
+            Hosting.GameplayDiagnostics.Stop();
+            Artwork.DirectArtwork.Shutdown();
+        }
         private void Apply(Type type, ref int count)
         {
             Lifecycle(type, "OnBeforePatch");
