@@ -10,6 +10,8 @@ namespace SinmaiAlpha.Artwork
         [DataMember] public bool Enabled = false;
         [DataMember] public bool EnableJackets = true;
         [DataMember] public bool EnableFrames = true;
+        [DataMember] public bool EnableIcons = true;
+        [DataMember] public bool EnableNamePlates = true;
         [DataMember] public bool EnableImages = true;
         [DataMember] public bool EnableGif = true;
         [DataMember] public bool EnableVideo = true;
@@ -18,7 +20,7 @@ namespace SinmaiAlpha.Artwork
         [OnDeserializing] private void Defaults(StreamingContext context)
         {
             Enabled = false;
-            EnableJackets = EnableFrames = EnableImages = EnableGif = EnableVideo = true;
+            EnableJackets = EnableFrames = EnableIcons = EnableNamePlates = EnableImages = EnableGif = EnableVideo = true;
             Directory = "LocalAssets";
         }
         [OnDeserialized] private void Validate(StreamingContext context)

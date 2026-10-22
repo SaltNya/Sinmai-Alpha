@@ -66,13 +66,21 @@ try
         "StreamingAssets/A000/AssetBundleImages/jacket/UI_Jacket_222222.png",
         "StreamingAssets/A698/AssetBundleImages/jacket/UI_Jacket_222222.gif",
         "StreamingAssets/A698/AssetBundleImages/jacket/UI_Jacket_222222.mp4",
+        "StreamingAssets/A698/AssetBundleImages/icon/UI_Icon_709514.GiF",
+        "StreamingAssets/A698/AssetBundleImages/icon/UI_Icon_709514.mp4",
+        "StreamingAssets/A698/AssetBundleImages/icon/UI_Icon_709514.png",
+        "StreamingAssets/A698/AssetBundleImages/nameplate/UI_Plate_888888.GiF",
+        "StreamingAssets/A698/AssetBundleImages/nameplate/UI_Plate_888888.mp4",
+        "StreamingAssets/A698/AssetBundleImages/nameplate/UI_Plate_888888.png",
+        "LocalAssets/NamePlate/999999.gif",
+        "LocalAssets/Icon/777777.gif", "LocalAssets/777777.png",
         "LocalAssets/Frame/UI_Frame_222222.gif", "Chart/bg.png", "Chart/bg.mp4", "Chart/jacket.gif"
     }) MountFile(path);
     settings = new ArtworkSettings { Enabled = true };
     var catalog = new ArtworkCatalog(catalogRoot, settings, new[] { Path.Combine(catalogRoot, "StreamingAssets") }, message => throw new Exception(message));
     void CatalogResolve(string request, bool frame, string suffix)
     {
-        Check(catalog.TryResolve(request, frame, out var path) && path.Replace('\\', '/').EndsWith(suffix, StringComparison.Ordinal), "Catalog " + request + " => " + path);
+        Check(catalog.TryResolve(request, frame ? ArtworkKind.Frame : ArtworkKind.Jacket, out var path) && path.Replace('\\', '/').EndsWith(suffix, StringComparison.Ordinal), "Catalog " + request + " => " + path);
     }
     CatalogResolve("Jacket_S/UI_Jacket_111111_S.png", false, "LocalAssets/Jacket/UI_Jacket_111111.png");
     CatalogResolve("Jacket_S/UI_Jacket_222222_S.png", false, "A698/AssetBundleImages/jacket/UI_Jacket_222222.gif");
@@ -81,12 +89,12 @@ try
     settings.EnableVideo = false;
     CatalogResolve("Jacket/UI_Jacket_222222.png", false, "A000/AssetBundleImages/jacket/UI_Jacket_222222.png");
     settings.EnableImages = false;
-    Check(!catalog.TryResolve("Jacket/UI_Jacket_222222.png", false, out _), "All media disabled");
+    Check(!catalog.TryResolve("Jacket/UI_Jacket_222222.png", ArtworkKind.Jacket, out _), "All media disabled");
     settings.EnableImages = settings.EnableGif = settings.EnableVideo = true;
     settings.EnableFrames = false;
-    Check(!catalog.TryResolve("Frame/UI_Frame_222222.png", true, out _), "Frame switch");
+    Check(!catalog.TryResolve("Frame/UI_Frame_222222.png", ArtworkKind.Frame, out _), "Frame switch");
     settings.EnableFrames = true; settings.EnableJackets = false;
-    Check(!catalog.TryResolve("Jacket/UI_Jacket_222222.png", false, out _), "Jacket switch");
+    Check(!catalog.TryResolve("Jacket/UI_Jacket_222222.png", ArtworkKind.Jacket, out _), "Jacket switch");
     CatalogResolve("Frame_S/UI_Frame_222222_S.png", true, "LocalAssets/Frame/UI_Frame_222222.gif");
     settings.EnableJackets = true;
     CatalogResolve(Path.Combine(catalogRoot, "Chart/bg.png"), false, "Chart/jacket.gif");
@@ -94,8 +102,54 @@ try
     CatalogResolve(Path.Combine(catalogRoot, "Chart/bg.png"), false, "Chart/bg.png");
     catalog.RegisterMounts(new[] { Path.Combine(catalogRoot, "StreamingAssets/A698"), Path.Combine(catalogRoot, "StreamingAssets/A000") });
     CatalogResolve("Jacket/UI_Jacket_222222.png", false, "A000/AssetBundleImages/jacket/UI_Jacket_222222.png");
+    settings.EnableJackets = settings.EnableFrames = false;
+    void ResolveIcon(string request, string suffix)
+    {
+        Check(catalog.TryResolve(request, ArtworkKind.Icon, out var path) && path.Replace(Path.DirectorySeparatorChar, '/').EndsWith(suffix, StringComparison.Ordinal), "Icon " + request + " => " + path);
+    }
+    ResolveIcon("Icon/UI_Icon_709514.gif", "A698/AssetBundleImages/icon/UI_Icon_709514.GiF");
+    ResolveIcon("Icon/UI_Icon_709514.png", "A698/AssetBundleImages/icon/UI_Icon_709514.GiF");
+    ResolveIcon("Icon/UI_Icon_777777.png", "LocalAssets/Icon/777777.gif");
+    Check(!catalog.TryResolve("Icon/UI_Icon_222222.png", ArtworkKind.Icon, out _), "Frame ID must not resolve as an icon");
+    Check(!catalog.TryResolve("Frame/UI_Frame_777777.png", ArtworkKind.Frame, out _), "Icon must not enable Frame");
+    settings.EnableGif = false;
+    ResolveIcon("Icon/UI_Icon_709514.gif", "A698/AssetBundleImages/icon/UI_Icon_709514.mp4");
+    Check(!catalog.TryResolve("Icon/UI_Icon_777777.png", ArtworkKind.Icon, out _), "Bare jacket ID must not resolve as an icon");
+    settings.EnableVideo = false;
+    ResolveIcon("Icon/UI_Icon_709514.png", "A698/AssetBundleImages/icon/UI_Icon_709514.png");
+    settings.EnableImages = false;
+    Check(!catalog.TryResolve("Icon/UI_Icon_709514.gif", ArtworkKind.Icon, out _), "Icon respects all format switches");
+    settings.EnableImages = settings.EnableGif = settings.EnableVideo = true;
+    settings.EnableIcons = false;
+    Check(!catalog.TryResolve("Icon/UI_Icon_709514.gif", ArtworkKind.Icon, out _), "Icon category switch");
+    settings.EnableJackets = true;
+    CatalogResolve("Jacket/UI_Jacket_111111.png", false, "LocalAssets/Jacket/UI_Jacket_111111.png");
+    settings.EnableFrames = settings.EnableIcons = true;
+    settings.EnableJackets = settings.EnableFrames = settings.EnableIcons = false;
+    void ResolvePlate(string request, string suffix)
+    {
+        Check(catalog.TryResolve(request, ArtworkKind.NamePlate, out var path) && path.Replace(Path.DirectorySeparatorChar, '/').EndsWith(suffix, StringComparison.Ordinal), "NamePlate " + request + " => " + path);
+    }
+    ResolvePlate("NamePlate/UI_Plate_888888.gif", "A698/AssetBundleImages/nameplate/UI_Plate_888888.GiF");
+    ResolvePlate("NamePlate/UI_Plate_888888.png", "A698/AssetBundleImages/nameplate/UI_Plate_888888.GiF");
+    ResolvePlate("NamePlate/UI_Plate_999999.png", "LocalAssets/NamePlate/999999.gif");
+    Check(!catalog.TryResolve("NamePlate/UI_Plate_777777.png", ArtworkKind.NamePlate, out _), "Icon/bare jacket ID must not resolve as a nameplate");
+    Check(!catalog.TryResolve("NamePlate/UI_Plate_222222.png", ArtworkKind.NamePlate, out _), "Frame ID must not resolve as a nameplate");
+    settings.EnableGif = false;
+    ResolvePlate("NamePlate/UI_Plate_888888.gif", "A698/AssetBundleImages/nameplate/UI_Plate_888888.mp4");
+    settings.EnableVideo = false;
+    ResolvePlate("NamePlate/UI_Plate_888888.png", "A698/AssetBundleImages/nameplate/UI_Plate_888888.png");
+    settings.EnableImages = false;
+    Check(!catalog.TryResolve("NamePlate/UI_Plate_888888.gif", ArtworkKind.NamePlate, out _), "NamePlate respects all format switches");
+    settings.EnableImages = settings.EnableGif = settings.EnableVideo = true;
+    settings.EnableNamePlates = false;
+    Check(!catalog.TryResolve("NamePlate/UI_Plate_888888.gif", ArtworkKind.NamePlate, out _), "NamePlate category switch");
+    settings.EnableIcons = true;
+    ResolveIcon("Icon/UI_Icon_709514.gif", "A698/AssetBundleImages/icon/UI_Icon_709514.GiF");
+    Check(!catalog.TryResolve("Icon/UI_Icon_999999.png", ArtworkKind.Icon, out _), "NamePlate numeric ID must not resolve as an icon");
+    settings.EnableJackets = settings.EnableFrames = settings.EnableNamePlates = true;
     settings.Enabled = false;
-    Check(!catalog.TryResolve("Frame/UI_Frame_222222.png", true, out _), "Global disable");
+    Check(!catalog.TryResolve("Frame/UI_Frame_222222.png", ArtworkKind.Frame, out _), "Global disable");
     Console.WriteLine($"PASS {checks} total checks including local/mount priority, thumbnail fallback, media/category toggles, and BGA isolation.");
     if (args.Length > 0)
     {
@@ -103,17 +157,17 @@ try
         var timer = System.Diagnostics.Stopwatch.StartNew();
         var realGif = new GifAnimation(File.ReadAllBytes(reference.GetProperty("file").GetString()));
         var frames = reference.GetProperty("frames");
-        Check(realGif.Width == reference.GetProperty("width").GetInt32() && realGif.Height == reference.GetProperty("height").GetInt32(), "Actual jacket dimensions");
-        Check(realGif.FrameCount == frames.GetArrayLength(), "Actual jacket frame count");
+        Check(realGif.Width == reference.GetProperty("width").GetInt32() && realGif.Height == reference.GetProperty("height").GetInt32(), "Actual artwork dimensions");
+        Check(realGif.FrameCount == frames.GetArrayLength(), "Actual artwork frame count");
         for (int cycle = 0; cycle < 2; cycle++)
             for (int f = 0; f < realGif.FrameCount; f++)
             {
                 string hash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(realGif.Pixels)).ToLowerInvariant();
-                Check(hash == frames[f].GetProperty("sha256").GetString(), "Actual jacket frame " + f + " cycle " + cycle);
-                Check(Math.Abs(realGif.Delay - frames[f].GetProperty("delay").GetSingle()) < .001, "Actual jacket frame delay");
+                Check(hash == frames[f].GetProperty("sha256").GetString(), "Actual artwork frame " + f + " cycle " + cycle);
+                Check(Math.Abs(realGif.Delay - frames[f].GetProperty("delay").GetSingle()) < .001, "Actual artwork frame delay");
                 realGif.Advance();
             }
-        Console.WriteLine($"PASS actual jacket: {realGif.Width}x{realGif.Height}, {realGif.FrameCount} frames, 2 complete loops match Pillow pixel hashes and timing; decoded/hashed in {timer.Elapsed.TotalSeconds:F2}s.");
+        Console.WriteLine($"PASS actual artwork: {realGif.Width}x{realGif.Height}, {realGif.FrameCount} frames, 2 complete loops match Pillow pixel hashes and timing; decoded/hashed in {timer.Elapsed.TotalSeconds:F2}s.");
     }
 
 }

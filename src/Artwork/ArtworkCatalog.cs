@@ -4,6 +4,8 @@ using System.IO;
 
 namespace SinmaiAlpha.Artwork
 {
+    internal enum ArtworkKind { Jacket, Frame, Icon, NamePlate }
+
     internal sealed class ArtworkCatalog
     {
         private readonly ArtworkSettings configuration;
@@ -53,11 +55,11 @@ namespace SinmaiAlpha.Artwork
             if (directories == null) return;
             lock (sync) { mounts.Clear(); foreach (string directory in directories) AddMount(directory); }
         }
-        internal bool TryResolve(string request, bool frame, out string path)
+        internal bool TryResolve(string request, ArtworkKind kind, out string path)
         {
             path = null;
-            if (!configuration.Enabled || (frame ? !configuration.EnableFrames : !configuration.EnableJackets) || string.IsNullOrEmpty(request)) return false;
-            if (Path.IsPathRooted(request)) return TryAbsolute(request, frame, out path);
+            if (!configuration.Enabled || (kind == ArtworkKind.Frame ? !configuration.EnableFrames : kind == ArtworkKind.Icon ? !configuration.EnableIcons : kind == ArtworkKind.NamePlate ? !configuration.EnableNamePlates : !configuration.EnableJackets) || string.IsNullOrEmpty(request)) return false;
+            if (Path.IsPathRooted(request)) return TryAbsolute(request, kind, out path);
             lock (sync)
             {
                 if (local.TryResolve(request, true, out path)) return true;
@@ -65,7 +67,7 @@ namespace SinmaiAlpha.Artwork
             }
             return false;
         }
-        private bool TryAbsolute(string request, bool frame, out string path)
+        private bool TryAbsolute(string request, ArtworkKind kind, out string path)
         {
             path = null;
             if (LooseAssetIndex.IsAnimated(request))
@@ -84,7 +86,7 @@ namespace SinmaiAlpha.Artwork
                 if (!externalDirectories.TryGetValue(directory, out index))
                 { index = NewIndex(); Scan(index, directory); externalDirectories[directory] = index; }
             }
-            if (!frame && (stem.Equals("bg", StringComparison.OrdinalIgnoreCase) || stem.Equals("cover", StringComparison.OrdinalIgnoreCase) || stem.Equals("jacket", StringComparison.OrdinalIgnoreCase)))
+            if (kind == ArtworkKind.Jacket && (stem.Equals("bg", StringComparison.OrdinalIgnoreCase) || stem.Equals("cover", StringComparison.OrdinalIgnoreCase) || stem.Equals("jacket", StringComparison.OrdinalIgnoreCase)))
             {
                 foreach (string name in new[] { "jacket", "cover", "bg" })
                     if (index.TryResolve(name, true, out var candidate) && LooseAssetIndex.IsAnimated(candidate) &&
@@ -92,7 +94,7 @@ namespace SinmaiAlpha.Artwork
                     { path = candidate; return true; }
             }
             if (index.TryResolve(stem, true, out var resolved) &&
-                (frame || !stem.Equals("bg", StringComparison.OrdinalIgnoreCase) || !IsVideo(resolved)))
+                (kind != ArtworkKind.Jacket || !stem.Equals("bg", StringComparison.OrdinalIgnoreCase) || !IsVideo(resolved)))
             { path = resolved; return true; }
             if (configuration.EnableImages && File.Exists(request)) { path = request; return true; }
             return false;
