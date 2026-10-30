@@ -47,6 +47,11 @@ namespace SinmaiAlpha
                 throw;
             }
         }
+        public override void OnLateInitializeMelon()
+        {
+            // KALEIDXSCOPE loads its copied controller after Alpha's early patches.
+            Compatibility.KaleidxScopeGeometry.Initialize(HarmonyInstance);
+        }
         public override void OnDeinitializeMelon()
         {
             Hosting.GameplayDiagnostics.Stop();
