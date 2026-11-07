@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><LangVersion>latest</LangVersion><NuGetAudit>false</NuGetAudit></PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../src/Notes/Libs/MaiGeometry.cs" Link="MaiGeometry.cs" />
+    <Compile Include="../../src/Notes/Libs/ParametricSlidePath.cs" Link="ParametricSlidePath.cs" />
+    <Compile Include="../../src/Notes/Libs/SlidePathGenerator.cs" Link="SlidePathGenerator.cs" />
+    <Compile Include="../../src/Notes/Libs/SlideCodeParser.cs" Link="SlideCodeParser.cs" />
+    <Compile Include="../../src/ChartVisuals/CanonicalSlideCodeParser.cs" Link="CanonicalSlideCodeParser.cs" />
+    <Compile Include="../../src/Notes/Libs/SlideDataBuilder.cs" Link="SlideDataBuilder.cs" />
+    <Compile Include="../../src/Notes/ExperimentalSlideJudge/Unified/SlideJudgeProfile.cs" Link="SlideJudgeProfile.cs" />
+    <Compile Include="../../src/Notes/Libs/CustomSlideNoteData.cs" Link="CustomSlideNoteData.cs" />
+    <Compile Include="../../src/Notes/ExperimentalSlideJudge/Unified/SlideDefinition.cs" Link="SlideDefinition.cs" />
+    <Compile Include="../../src/Notes/ExperimentalSlideJudge/Unified/SlideTable.cs" Link="SlideTable.cs" />
+    <Compile Include="../../src/Notes/ExperimentalSlideJudge/Unified/NativeVSlide.cs" Link="NativeVSlide.cs" />
+    <Compile Include="../../src/Notes/ExperimentalSlideJudge/Unified/SlideCodeParser.cs" Link="UnifiedParser.cs" />
+    <Compile Include="../../src/Notes/ExperimentalSlideJudge/Unified/SlideDataBuilder.cs" Link="UnifiedBuilder.cs" />
+    <Compile Include="../../src/Notes/ExperimentalSlideJudge/Unified/UnifiedGeometry.cs" />
+    <Compile Include="../../src/Notes/ExperimentalSlideJudge/Unified/UnifiedSlideNoteData.cs" />
+    <Compile Include="../../src/Notes/Libs/NativeDFanGeometry.cs" />
+    <Compile Include="../../src/Notes/Libs/NativeDSlideGeometry.cs" Link="NativeDSlideGeometry.cs" />
+    <Compile Include="../../src/Notes/Libs/NativeTouchSlideGeometry.cs" Link="NativeTouchSlideGeometry.cs" />
+    <Compile Include="../../src/Notes/Libs/MajdataSlidePath.cs" Link="MajdataSlidePath.cs" />
+    <Compile Include="../../src/Notes/Libs/MajdataRegularPath*.cs" Link="%(Filename)%(Extension)" />
+    <Compile Include="../../src/Notes/Libs/MajdataTangentPath.cs" Link="MajdataTangentPath.cs" />
+    <Compile Include="../../src/Notes/Libs/MajdataDZoneGeometry.cs" Link="MajdataDZoneGeometry.cs" />
+    <Compile Include="../../src/Notes/Libs/MajdataSingleOrbitPath.cs" Link="MajdataSingleOrbitPath.cs" />
+    <Compile Include="../../src/Notes/Libs/SelectableOrbitPathGeometry.cs" Link="SelectableOrbitPathGeometry.cs" />
+    <Compile Include="../../src/Notes/Libs/TouchSlideDirection.cs" Link="TouchSlideDirection.cs" />
+    <Compile Include="../FriendsWineCompatibility/PortableMath.cs" Link="PortableMath.cs" />
+    <None Update="Native170.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="CompatibilityBaseline.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

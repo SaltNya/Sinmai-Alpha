@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- Offline only: reuse the production parsers with the parity harness's
+         portable Unity types. This project is not referenced by the mod. -->
+    <ProjectReference Include="../OfficialSlideParity/Tests.csproj" />
+    <Compile Include="../OfficialSlideParity/NativeJudgeReplay.cs" Link="NativeJudgeReplay.cs" />
+    <None Include="../OfficialSlideParity/Native170.json" Link="Native170.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="viewer.template.html" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net472</TargetFramework>
+    <LangVersion>12</LangVersion><NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/ExperimentalJudgeConfig.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/RuntimeCache.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/RuntimePatches.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/RuntimeInputState.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/CompiledJudgeFrame.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/UnifiedSlideHooks.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/Unified/SlideCallRedirector.cs" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="0Harmony"><HintPath>../../../Libs/0Harmony.dll</HintPath></Reference>
+    <Reference Include="Mono.Cecil"><HintPath>../../../Libs/Mono.Cecil.dll</HintPath></Reference>
+    <Reference Include="MonoMod.Utils"><HintPath>../../../Libs/MonoMod.Utils.dll</HintPath></Reference>
+    <Reference Include="MonoMod.RuntimeDetour"><HintPath>../../../Libs/MonoMod.RuntimeDetour.dll</HintPath></Reference>
+  </ItemGroup>
+</Project>

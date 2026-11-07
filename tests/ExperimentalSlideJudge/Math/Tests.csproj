@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework>
+    <AssemblyName>ExperimentalSlideJudge.Math.Tests</AssemblyName>
+    <LangVersion>latest</LangVersion><NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../SlideJudgePrototype/Prototype.csproj" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/ArcLengthPath.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/SensorRegions.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/ContourRegions.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/IntervalJudge.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/NativeTableCompiler.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/CompiledJudgeFrame.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/RuntimeInputState.cs" />
+    <Compile Include="../../../src/Notes/ExperimentalSlideJudge/Scalar.cs" />
+    <None Include="../../OfficialSlideParity/Native170.json" Link="Native170.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

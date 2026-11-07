@@ -23,7 +23,8 @@ internal static class ChartFeatureGate
     internal static void RegisterExtensions(IEnumerable<string> names) => Extensions.UnionWith(names.Where(n => !NativeFields.ContainsKey(n) && !Ignored.Contains(n)));
     private static readonly bool[] Selected = new bool[2];
     private static readonly bool?[] HoldTap = new bool?[2];
-    internal static bool AllowTapInHold(int monitor, bool defaultValue = false) => monitor >= 0 && monitor < HoldTap.Length ? HoldTap[monitor] ?? defaultValue : defaultValue;
+    // Other Alpha extensions do not opt a chart into different input ordering.
+    internal static bool AllowTapInHold(int monitor) => monitor >= 0 && monitor < HoldTap.Length && HoldTap[monitor] == true;
     internal static bool DetectHoldTap(string path, int difficulty) => DetectHoldTapOverride(path, difficulty) == true;
     internal static bool? DetectHoldTapOverride(string path, int difficulty)
     {

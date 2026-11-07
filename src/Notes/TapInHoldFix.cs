@@ -9,7 +9,7 @@ public class TapInHoldFix
     [HarmonyPrefix]
     public static bool IsJudgeNote(NoteBase __instance, ref bool __result)
     {
-        if (!ChartFeatureGate.AllowTapInHold(__instance.MonitorId, CustomNoteTypes.FeaturesEnabled(__instance))) {  return true; }
+        if (!ChartFeatureGate.AllowTapInHold(__instance.MonitorId)) { return true; }
 
         __result = !__instance.IsEnd();
         return false;

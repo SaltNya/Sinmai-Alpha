@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Sinmai-Alpha 判定数学原型</title>
+<style>
+:root{color-scheme:dark;font:15px/1.6 system-ui,"Microsoft YaHei",sans-serif;background:#111722;color:#e5edf9}body{margin:0 auto;padding:28px;max-width:1360px}h1{font-size:26px;margin:0}h2{font-size:18px}p{color:#a8b8ce}select{padding:8px 12px;background:#202c3f;color:inherit;border:1px solid #536783;border-radius:6px;max-width:100%;font:inherit}label{display:inline-block;margin:4px 16px 8px 0}article{display:grid;grid-template-columns:minmax(320px,1fr) minmax(400px,1.3fr);gap:24px;margin-top:22px}section{background:#182233;border:1px solid #30415b;border-radius:12px;padding:20px;min-width:0}.warning{border-left:3px solid #e9b86d;padding-left:14px;color:#e9c79d}.metrics{white-space:pre-wrap;color:#abc6e7}svg{width:100%;height:auto;background:#111925;border-radius:50%}table{border-collapse:collapse;width:100%;font-size:13px;font-variant-numeric:tabular-nums}th,td{text-align:left;padding:7px 6px;border-bottom:1px solid #334158}th{color:#b4cee9}.scroll{overflow:auto}details{margin-top:18px}code{color:#b5e4df}input{width:100%}.pill{color:#f2c18b}.queue{overflow-wrap:anywhere;font-size:15px}summary{cursor:pointer}pre{overflow:auto;font-size:12px}footer{margin:22px 0;color:#99a8ba}@media(max-width:850px){body{padding:14px}article{grid-template-columns:1fr}}
+</style>
+<h1>判定数学 · 离线原型</h1>
+<p>按弧长计算进入、离开区域的距离；原版表仅用于对照。此页为离线报告，游戏内实验开关默认关闭。</p>
+<p id="loadStatus" class="warning" role="status">正在加载报告数据……</p>
+<noscript><p>请使用支持 JavaScript 的浏览器打开生成目录中的 report.html。</p></noscript>
+<div id="workspace" hidden>
+<p class="warning">候选轮廓不代表实体传感器边界。区域顺序、距离、跳区均需分别验证；结果不能直接视为官机一致。</p>
+<label>区域模型 <select id="model"><option value="contours-and-choices">方向轮廓＋任选容错</option><option value="diameter-calibrated">直穿中心校准的候选圆</option><option value="legacy-seeds">现有小圆采样区（对照）</option></select></label>
+<label>路径 <select id="path"></select></label>
+<div id="summary" class="metrics"></div>
+<article><section><svg id="drawing" viewBox="-550 -550 1100 1100" role="img" aria-label="轨迹与候选判定区域"></svg>
+<label for="progress">沿弧长移动：<span id="position"></span></label><input id="progress" type="range" min="0" max="400" value="0">
+<div id="detail" class="metrics"></div><p>轮廓：候选区域；青线：轨迹；白点：按路程移动。任选传感器另列于步骤表。D/E 仅在扩展配置中加入。</p></section>
+<section><h2 id="caseTitle"></h2><div id="queues" class="queue"></div><h2>原型步骤</h2><div class="scroll"><table id="steps"></table></div>
+<h2>原版对照</h2><div class="scroll"><table id="native"></table></div><p id="diagnostics" class="warning"></p>
+<details><summary>原始进入 / 离开区间</summary><pre id="visits"></pre></details></section></article>
+<details><summary>测试与汇总数据</summary><pre id="tests"></pre></details>
+<footer>距离单位为 1080 画布坐标。尾等待差按滑行 1000 ms 计算，不是完整计分窗口。Wi-Fi 三路输入规则通过离线回放；几何终点备选区和完整计分仍需单独核对。参考集含校准数据。所有数据包含在此文件中，无网络依赖。</footer>
+</div>
+<script id="data" type="application/json">__REPORT_DATA__</script>
+<script>
+'use strict';
+(() => {
+const $=id=>document.getElementById(id);
+function fail(message){$('loadStatus').textContent=message;$('loadStatus').hidden=false;$('workspace').hidden=true;}
+let data;
+try {
+ const raw=$('data').textContent.trim();
+ if(!raw.startsWith('{')){fail('这是尚未填入数据的页面模板。请打开生成目录中的 report.html；源码目录里的 viewer.html 会带你进入完整报告。');return;}
+ data=JSON.parse(raw);
+ if(!Array.isArray(data.cases)||!data.cases.length||!Array.isArray(data.summaries)||!data.summaries.length)throw new Error('报告缺少路径或区域模型数据');
+} catch(error){fail('报告数据无法读取，请重新生成报告。'+error.message);return;}
+try {
+const num=x=>x==null?'—':Number(x).toFixed(3), panel=n=>n<8?'A'+(n+1):n<16?'B'+(n-7):n<18?'C':n<26?'D'+(n-17):'E'+(n-25);
+let current;
+const choices=data.cases.filter(x=>x.Model==='diameter-calibrated');
+choices.forEach((r,i)=>{const o=document.createElement('option');o.value=i;o.textContent=r.Code+(r.NativeType===13?'（原版 Wi-Fi 分路）':'');$('path').append(o)});
+function cell(tag,text){const c=document.createElement(tag);c.textContent=text;return c}
+function table(id,headers,rows){const t=$(id);t.replaceChildren();const h=document.createElement('tr');headers.forEach(v=>h.append(cell('th',v)));t.append(h);rows.forEach(values=>{const r=document.createElement('tr');values.forEach(v=>r.append(cell('td',v)));t.append(r)})}
+function svg(tag,attrs){const el=document.createElementNS('http://www.w3.org/2000/svg',tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);return el}
+function draw(){
+ const d=$('drawing');d.replaceChildren();d.append(svg('circle',{cx:0,cy:0,r:480,fill:'none',stroke:'#536780','stroke-width':2}));
+ current.Regions.forEach(r=>{const color=r.panel<8?'#6d9fdf':r.panel<16?'#75c6b6':r.panel<18?'#9cadc8':r.panel<26?'#de9e64':'#b792e0';
+ d.append(r.kind==='polygon'?svg('polygon',{points:r.points.map(p=>p[0]+','+(-p[1])).join(' '),fill:color,'fill-opacity':.06,stroke:color,'stroke-opacity':.6,'stroke-width':2}):svg('circle',{cx:r.x,cy:-r.y,r:r.radius,fill:color,'fill-opacity':.06,stroke:color,'stroke-opacity':.6,'stroke-width':2}));
+ const text=svg('text',{x:r.x,y:-r.y+7,'text-anchor':'middle',fill:color,'font-size':22});text.textContent=r.name;d.append(text)});
+ d.append(svg('polyline',{points:current.Path.map(p=>p[0]+','+(-p[1])).join(' '),fill:'none',stroke:'#6ee6dc','stroke-width':6,'stroke-linecap':'round','stroke-linejoin':'round'}));
+ d.append(svg('circle',{id:'cursor',r:10,fill:'#fff',stroke:'#111722','stroke-width':4}));move();
+}
+function move(){if(!current)return;const i=Number($('progress').value),p=current.Path[i],distance=current.GeometricLength*i/400;
+ $('cursor').setAttribute('cx',p[0]);$('cursor').setAttribute('cy',-p[1]);$('position').textContent=num(distance)+' / '+num(current.GeometricLength);
+ const active=current.Visits.filter(v=>distance>=v.Enter&&distance<=v.Exit).map(v=>panel(v.Panel));
+ const choices=(current.Choices||[]).filter(v=>distance>=v.Enter&&distance<=v.Exit).map(v=>v.Panels.map(panel).join('/'));
+ $('position').textContent+=' · '+(active.join('/')||'轮廓间隙')+(choices.length?' · 任选 '+choices.join(', '):'');}
+function update(){
+ current=data.cases.filter(r=>r.Model===$('model').value)[Number($('path').value)];const s=data.summaries.find(r=>r.model===$('model').value);
+ $('summary').textContent=`70 个非 Wi-Fi 参考形状：区域顺序相同 ${s.panelQueuesEqual}/${s.references}；已比较输入帧 ${s.replayFrames}，状态差异 ${s.replayStateMismatches}。`;
+ $('caseTitle').textContent=current.Code+' · '+current.Profile;
+ $('queues').replaceChildren();[['原型',current.Queue||'无区域'],['原版',current.NativeQueue||'无此参考'],['统一表基线（开关内）',current.CurrentQueue||'此例未对照']].forEach(([label,q])=>{const p=document.createElement('p');p.textContent=label+'：'+q;$('queues').append(p)});
+ $('detail').textContent=`路程 ${num(current.GeometricLength)} · 原版表总距 ${num(current.NativeTableLength)}\n首尾覆盖：${current.CanExportDistances?'完整':'不完整或零长度'}\n尾等待差：原型 ${num(current.TailDeltaMs)} ms / 现有 ${num(current.CurrentTailDeltaMs)} ms\n归一化边界最大差：${num(current.NormalizedBoundaryError)}\n跳区门控相同：${current.SkipGatesEqual==null?'未比较（区序不同或 Wi-Fi）':current.SkipGatesEqual?'是':'否'}\n预生成 ${num(current.CompileMs)} ms · ${current.Pieces} 段`;
+ table('steps',['区（优先顺序）','进入','离开','Push','Release','先进入'],current.Steps.map(s=>[s.Panels.map(panel).join('/'),num(s.Enter),num(s.Exit),num(s.Push),num(s.Release),s.GateReason||'—']));
+ table('native',['区（原表顺序）','Push','Release'],(current.Native||[]).map(s=>[s.Panels.map(panel).join('/'),num(s.Push),num(s.Release)]));
+ $('diagnostics').textContent=current.Diagnostics.length?current.Diagnostics.join('；'):'此路径没有区间结构警告；仍需检查与原版的数值差异。';
+ $('visits').textContent=current.Visits.map(v=>`${panel(v.Panel)}  ${num(v.Enter)} → ${num(v.Exit)}`).join('\n')+'\n\n任选容错：\n'+(current.Choices||[]).map(v=>`${v.Panels.map(panel).join('/')}  ${num(v.Enter)} → ${num(v.Exit)}  ${v.Reason}`).join('\n');draw();
+}
+function run(action){try{action();}catch(error){fail('报告显示失败：'+error.message);}}
+$('model').addEventListener('change',()=>run(update));$('path').addEventListener('change',()=>run(update));$('progress').addEventListener('input',()=>run(move));
+$('tests').textContent=JSON.stringify({tests:data.tests,contours:data.contours,fans:data.fans,summaries:data.summaries},null,2);update();
+$('loadStatus').hidden=true;$('workspace').hidden=false;
+} catch(error){fail('报告初始化失败：'+error.message);}
+})();
+</script></html>

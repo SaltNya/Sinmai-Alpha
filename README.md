@@ -91,6 +91,16 @@ SINMAI_ALPHA_MODE 与 Alpha 之间必须使用 Tab 制表符。手动添加时�
 
 在该谱面的 `X-SinmaiAlpha` 中设置 `<AllowTapInHold>true</AllowTapInHold>`。
 `false` 显式关闭；删除此子节点则跟随默认行为，不会重新读取旧 `.flag` 中的值。仅填写此开关、不填写 `Difficulty` 时保留原版难度外观。
+默认关闭，只有谱面明确设置为 `true` 才启用；其他 Alpha 特效不会自动开启此功能。
+
+### 实验性滑条判定（默认关闭）
+
+`Sinmai-Alpha/config.json` 新增 `ExperimentalSlideJudgment: false`。
+改为 `true` 并重启后启用独立的统一判定表、连段取表修正，以及支持范围内的轮廓／弧长判定。
+普通自定义滑条使用 A/B/C，显式 Touch/D/E 路径才加入 D/E；等效原版 V 形沿用原版 V 表。
+最新轮廓算法目前用于单段 SC/SSS/TouchSlide，Wi-Fi 和连段仍使用实验模块中的统一表。
+关闭时不安装上述补丁，完整沿用改动前的滑条实现。此功能尚需实机验证，暂不建议作为常规游玩设置。
+实现、范围与离线测试说明见 [实验判定说明](src/Notes/ExperimentalSlideJudge/README.txt)。
 
 ### 自定义版权文字
 
