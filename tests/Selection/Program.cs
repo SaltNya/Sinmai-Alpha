@@ -93,6 +93,7 @@ internal static partial class Program
             int audited = typeof(ExtraDifficulty).GetNestedTypes(BindingFlags.Public)
                 .Where(t => t.Name.StartsWith("Available", StringComparison.Ordinal) && t.GetCustomAttributes(typeof(HarmonyPatch), false).Any()).Sum(Audit);
             AvailabilityChecks();
+            SelectionStartupChecks();
             SelectionSoundChecks();
             System.Console.WriteLine("PASS: " + checks + " assertions; " + audited + " original patch targets/IL audited.");
             System.Console.WriteLine("Native rendering is stubbed; original-game visual validation is still required.");

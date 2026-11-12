@@ -26,6 +26,13 @@ charts, 432 complete stock selection workflows, and 1,280 sparse transitions on
 the original game methods. Both players, tabs, directions, state changes and
 sound lookup are checked. All 24 patch targets/IL are audited.
 
+Startup regression also calls the original `GetCurrentDifficulty`, `GetDifficulty`
+and `SetRankSortList` methods with the real postfix installed. It covers the
+`OnStart` boundary before player sequences exist, partially initialized or empty
+catalogues, both players, genre-to-song drawing and adjacent-card resolution.
+The native result is preserved until selection state is ready; normal chart
+resolution resumes afterwards.
+
 Native rendering/audio endpoints are stubbed in the workflow tests. Original-game
 button animation, card layout and visual behavior still require in-game validation;
 offline tests are not a substitute for that acceptance pass.

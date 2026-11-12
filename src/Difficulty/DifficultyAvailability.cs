@@ -107,9 +107,17 @@ public static partial class ExtraDifficulty
             yield return AccessTools.Method(typeof(MusicSelectProcess), "GetCurrentDifficulty");
             yield return AccessTools.Method(typeof(MusicSelectProcess), "GetDifficulty");
         }
-        [HarmonyPostfix] public static void Postfix(MusicSelectProcess __instance, int __0, object[] __args, ref int __result)
+        [HarmonyPostfix] public static void Postfix(MusicSelectProcess __instance, int __0, object[] __args, ref int __result,
+            MusicSelectProcess.SubSequence[] ____currentPlayerSubSequence)
         {
+            // OnStart sorts songs before allocating player sequences. Preserve
+            // the native result until both sequence and catalogue are ready.
+            if (____currentPlayerSubSequence == null || (uint)__0 >= (uint)____currentPlayerSubSequence.Length) return;
             if (drawingSong == 0 && __instance.IsGenreSeq(__0)) return;
+            var catalogue = __instance.CombineMusicDataList;
+            int category = __instance.CurrentCategorySelect;
+            if (catalogue == null || (uint)category >= (uint)catalogue.Count || catalogue[category] == null ||
+                catalogue[category].Count == 0) return;
             int offset = __args.Length > 1 ? (int)__args[1] : 0;
             int mask = SongMask(__instance.GetMusic(offset));
             int resolved = mask < 0 ? -1 : DifficultyAvailability.Resolve(mask, __result);
